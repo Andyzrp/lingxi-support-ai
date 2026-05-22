@@ -1,0 +1,124 @@
+/* ── 身份标签 ─────────────────────────── */
+.lx-status-tag {
+  display: inline-flex;
+  align-items: center;
+  height: 22px;
+  padding: 0 9px;
+  border-radius: var(--lx-radius-full);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1;
+}
+
+.lx-tag-bot {
+  color: var(--lx-primary);
+  background: var(--lx-primary-soft);
+  border: 1px solid var(--lx-primary-border);
+}
+.lx-tag-agent {
+  color: var(--lx-ai-purple);
+  background: var(--lx-ai-purple-soft);
+  border: 1px solid #ddd6fe;
+}
+.lx-tag-human {
+  color: #16a34a;
+  background: var(--lx-success-soft);
+  border: 1px solid #bbf7d0;
+}
+
+/* ── 指标卡片 ─────────────────────────── */
+.lx-metric-card {
+  padding: 20px;
+  border-radius: var(--lx-radius-xl);
+  background: #ffffff;
+  border: 1px solid var(--lx-border);
+  box-shadow: var(--lx-shadow-sm);
+}
+.lx-metric-value {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--lx-text-primary);
+  line-height: 1;
+}
+.lx-metric-label {
+  margin-top: 8px;
+  font-size: 13px;
+  color: var(--lx-text-secondary);
+}
+
+/* ── FAQ推荐标签 ──────────────────────── */
+.lx-faq-tag {
+  display: inline-flex;
+  padding: 7px 14px;
+  border-radius: var(--lx-radius-full);
+  color: var(--lx-primary);
+  background: var(--lx-primary-soft);
+  border: 1px solid var(--lx-primary-border);
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+.lx-faq-tag:hover {
+  background: #dbeafe;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(37, 99, 235, 0.12);
+}
+
+/* ── 工具调用状态 ─────────────────────── */
+.lx-tool-running {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: var(--lx-radius-lg);
+  color: var(--lx-primary);
+  background: var(--lx-primary-soft);
+  border: 1px solid var(--lx-primary-border);
+  font-size: 13px;
+}
+
+/* ── 打字动效 ─────────────────────────── */
+.lx-typing-dots {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 2px;
+}
+.lx-typing-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: #60a5fa;
+  animation: lxTyping 1.2s infinite ease-in-out;
+}
+.lx-typing-dot:nth-child(2) { animation-delay: 0.15s; }
+.lx-typing-dot:nth-child(3) { animation-delay: 0.30s; }
+
+@keyframes lxTyping {
+  0%, 80%, 100% {
+    opacity: 0.35;
+    transform: translateY(0);
+  }
+  40% {
+    opacity: 1;
+    transform: translateY(-4px);
+  }
+}
+
+/* ── 系统消息 ─────────────────────────── */
+.lx-msg-system {
+  align-self: center;
+  max-width: 80%;
+  padding: 5px 14px;
+  border-radius: var(--lx-radius-full);
+  font-size: 12px;
+  color: var(--lx-text-secondary);
+  background: var(--lx-bg-muted);
+  text-align: center;
+}
+
+/* ── MessageBox 层级修复（高于 chat widget）────────── */
+.el-message-box__wrapper {
+  z-index: 10050 !important;
+}

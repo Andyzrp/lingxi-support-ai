@@ -1,0 +1,56 @@
+:root {
+  /* 品牌主色 */
+  --lx-primary:        #2563eb;
+  --lx-primary-hover:  #1d4ed8;
+  --lx-primary-active: #1e40af;
+  --lx-primary-light:  #60a5fa;
+  --lx-primary-soft:   #eff6ff;
+  --lx-primary-border: #bfdbfe;
+
+  /* AI辅助色 */
+  --lx-ai-purple:      #7c3aed;
+  --lx-ai-purple-soft: #f3e8ff;
+  --lx-ai-yellow:      #facc15;
+  --lx-ai-yellow-soft: #fef9c3;
+
+  /* 状态色 */
+  --lx-success:        #22c55e;
+  --lx-success-soft:   #dcfce7;
+  --lx-warning:        #f59e0b;
+  --lx-warning-soft:   #fef3c7;
+  --lx-danger:         #ef4444;
+  --lx-danger-soft:    #fee2e2;
+  --lx-info:           #0ea5e9;
+  --lx-info-soft:      #e0f2fe;
+
+  /* 中性色 */
+  --lx-bg-page:           #f8fafc;
+  --lx-bg-card:           #ffffff;
+  --lx-bg-muted:          #f1f5f9;
+  --lx-border:            #e2e8f0;
+  --lx-border-light:      #f1f5f9;
+  --lx-text-primary:      #0f172a;
+  --lx-text-regular:      #334155;
+  --lx-text-secondary:    #64748b;
+  --lx-text-placeholder:  #94a3b8;
+  --lx-text-disabled:     #cbd5e1;
+
+  /* 圆角 */
+  --lx-radius-xs:   4px;
+  --lx-radius-sm:   6px;
+  --lx-radius-md:   8px;
+  --lx-radius-lg:   12px;
+  --lx-radius-xl:   16px;
+  --lx-radius-full: 999px;
+
+  /* 阴影 */
+  --lx-shadow-sm:   0 1px 2px rgba(15, 23, 42, 0.06);
+  --lx-shadow-md:   0 8px 20px rgba(15, 23, 42, 0.08);
+  --lx-shadow-lg:   0 16px 40px rgba(15, 23, 42, 0.12);
+  --lx-shadow-blue: 0 12px 30px rgba(37, 99, 235, 0.28);
+
+  /* 布局尺寸 */
+  --lx-header-height:   64px;
+  --lx-content-padding: 20px;
+  --lx-content-max-width: 1200px;
+}

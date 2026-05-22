@@ -1,0 +1,26 @@
+<svg width="220" height="48" viewBox="0 0 220 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Icon Background -->
+  <rect x="4" y="4" width="40" height="40" rx="12" fill="url(#mallHeaderGradient)"/>
+
+  <!-- Shopping Bag -->
+  <path d="M13 21C13 18.791 14.791 17 17 17H31C33.209 17 35 18.791 35 21L33.5 36C33.296 38.041 31.577 39.6 29.526 39.6H18.474C16.423 39.6 14.704 38.041 14.5 36L13 21Z" fill="white"/>
+
+  <!-- Handle -->
+  <path d="M18 21C18 17.686 20.686 15 24 15C27.314 15 30 17.686 30 21" stroke="#2563EB" stroke-width="2.6" stroke-linecap="round"/>
+
+  <!-- Smile -->
+  <path d="M20 29C22.5 31.5 25.5 31.5 28 29" stroke="#2563EB" stroke-width="2.2" stroke-linecap="round"/>
+
+  <!-- AI Spark -->
+  <path d="M36 6L38 12L44 14L38 16L36 22L34 16L28 14L34 12L36 6Z" fill="#FACC15"/>
+
+  <!-- Text -->
+  <text x="56" y="30" font-family="Inter, PingFang SC, Microsoft YaHei, Arial, sans-serif" font-size="22" font-weight="700" fill="#0F172A">灵犀商城</text>
+
+  <defs>
+    <linearGradient id="mallHeaderGradient" x1="4" y1="4" x2="44" y2="44" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#60A5FA"/>
+      <stop offset="1" stop-color="#2563EB"/>
+    </linearGradient>
+  </defs>
+</svg>

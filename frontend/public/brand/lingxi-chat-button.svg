@@ -1,0 +1,25 @@
+<svg width="128" height="128" viewBox="0 0 128 128" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Button Background -->
+  <rect width="128" height="128" rx="36" fill="url(#chatButtonGradient)"/>
+
+  <!-- Chat Bubble -->
+  <path d="M30 42C30 31.507 38.507 23 49 23H79C89.493 23 98 31.507 98 42V68C98 78.493 89.493 87 79 87H59L39 104V86C33.605 82.681 30 76.726 30 70V42Z" fill="white"/>
+
+  <!-- Face -->
+  <circle cx="52" cy="56" r="5" fill="#2563EB"/>
+  <circle cx="76" cy="56" r="5" fill="#2563EB"/>
+  <path d="M52 70C59 76 69 76 76 70" stroke="#2563EB" stroke-width="5" stroke-linecap="round"/>
+
+  <!-- AI Spark -->
+  <path d="M91 20L95 32L107 36L95 40L91 52L87 40L75 36L87 32L91 20Z" fill="#FACC15"/>
+
+  <!-- Small Green Dot -->
+  <circle cx="99" cy="96" r="9" fill="#22C55E" stroke="white" stroke-width="4"/>
+
+  <defs>
+    <linearGradient id="chatButtonGradient" x1="10" y1="8" x2="118" y2="122" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#60A5FA"/>
+      <stop offset="1" stop-color="#2563EB"/>
+    </linearGradient>
+  </defs>
+</svg>

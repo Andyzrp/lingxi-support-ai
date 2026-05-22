@@ -1,0 +1,28 @@
+<svg width="220" height="48" viewBox="0 0 220 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Icon -->
+  <rect x="4" y="4" width="40" height="40" rx="12" fill="url(#adminDarkGradient)"/>
+
+  <!-- Bubble -->
+  <path d="M13 19C13 14.582 16.582 11 21 11H29C33.418 11 37 14.582 37 19V27C37 31.418 33.418 35 29 35H24L16 41V34C14.194 32.535 13 30.308 13 27.8V19Z" fill="#F8FAFC"/>
+
+  <!-- Dots -->
+  <circle cx="22" cy="23" r="1.8" fill="#2563EB"/>
+  <circle cx="29" cy="23" r="1.8" fill="#2563EB"/>
+
+  <!-- Smile -->
+  <path d="M22 28C24 30 27 30 29 28" stroke="#2563EB" stroke-width="1.8" stroke-linecap="round"/>
+
+  <!-- Spark -->
+  <path d="M36 6L38 12L44 14L38 16L36 22L34 16L28 14L34 12L36 6Z" fill="#FACC15"/>
+
+  <!-- Text -->
+  <text x="56" y="30" font-family="Inter, PingFang SC, Microsoft YaHei, Arial, sans-serif" font-size="22" font-weight="700" fill="#F8FAFC">灵犀客服</text>
+  <text x="150" y="30" font-family="Inter, Arial, sans-serif" font-size="12" font-weight="600" fill="#93C5FD">AI</text>
+
+  <defs>
+    <linearGradient id="adminDarkGradient" x1="4" y1="4" x2="44" y2="44" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#3B82F6"/>
+      <stop offset="1" stop-color="#1D4ED8"/>
+    </linearGradient>
+  </defs>
+</svg>

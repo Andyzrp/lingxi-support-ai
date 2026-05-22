@@ -1,0 +1,13 @@
+<svg width="220" height="48" viewBox="0 0 220 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Icon -->
+  <rect x="4" y="4" width="40" height="40" rx="12" fill="#2563EB"/>
+
+  <!-- Bag -->
+  <path d="M13 21C13 18.791 14.791 17 17 17H31C33.209 17 35 18.791 35 21L33.5 36C33.296 38.041 31.577 39.6 29.526 39.6H18.474C16.423 39.6 14.704 38.041 14.5 36L13 21Z" fill="white"/>
+
+  <!-- Handle -->
+  <path d="M18 21C18 17.686 20.686 15 24 15C27.314 15 30 17.686 30 21" stroke="#2563EB" stroke-width="2.6" stroke-linecap="round"/>
+
+  <!-- Text -->
+  <text x="56" y="30" font-family="Inter, PingFang SC, Microsoft YaHei, Arial, sans-serif" font-size="22" font-weight="700" fill="#2563EB">灵犀商城</text>
+</svg>

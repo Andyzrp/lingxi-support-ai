@@ -1,0 +1,30 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="512" height="512" rx="120" fill="url(#mallIconGradient)"/>
+
+  <!-- Shopping Bag Body -->
+  <path d="M145 214C145 186.386 167.386 164 195 164H317C344.614 164 367 186.386 367 214L351.5 367.5C348.925 393.017 327.439 412.5 301.792 412.5H210.208C184.561 412.5 163.075 393.017 160.5 367.5L145 214Z" fill="white"/>
+
+  <!-- Shopping Bag Handle -->
+  <path d="M202 214C202 184.177 226.177 160 256 160C285.823 160 310 184.177 310 214" stroke="#2563EB" stroke-width="24" stroke-linecap="round"/>
+
+  <!-- Eyes / Product Dots -->
+  <circle cx="222" cy="272" r="14" fill="#60A5FA"/>
+  <circle cx="290" cy="272" r="14" fill="#60A5FA"/>
+
+  <!-- Smile -->
+  <path d="M222 316C243 337 269 337 290 316" stroke="#2563EB" stroke-width="18" stroke-linecap="round"/>
+
+  <!-- AI Spark Main -->
+  <path d="M356 92L369 132L409 145L369 158L356 198L343 158L303 145L343 132L356 92Z" fill="#FACC15"/>
+
+  <!-- AI Spark Small -->
+  <path d="M150 106L158 130L182 138L158 146L150 170L142 146L118 138L142 130L150 106Z" fill="#22C55E"/>
+
+  <defs>
+    <linearGradient id="mallIconGradient" x1="64" y1="48" x2="448" y2="464" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#60A5FA"/>
+      <stop offset="1" stop-color="#2563EB"/>
+    </linearGradient>
+  </defs>
+</svg>

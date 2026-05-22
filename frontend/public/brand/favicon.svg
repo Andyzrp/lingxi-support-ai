@@ -1,0 +1,27 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="512" height="512" rx="120" fill="url(#faviconGradient)" />
+
+  <!-- Chat Bubble -->
+  <path d="M128 170C128 136.863 154.863 110 188 110H324C357.137 110 384 136.863 384 170V260C384 293.137 357.137 320 324 320H232L174 370C165.66 377.316 152 371.392 152 360.303V315C137.594 304.056 128 286.779 128 267V170Z" fill="white"/>
+
+  <!-- Eyes -->
+  <circle cx="220" cy="222" r="12" fill="#2563EB"/>
+  <circle cx="292" cy="222" r="12" fill="#2563EB"/>
+
+  <!-- Smile -->
+  <path d="M220 258C241 278 271 278 292 258" stroke="#2563EB" stroke-width="18" stroke-linecap="round"/>
+
+  <!-- Shopping Bag Handle -->
+  <path d="M216 188C216 165.909 233.909 148 256 148C278.091 148 296 165.909 296 188" stroke="#60A5FA" stroke-width="18" stroke-linecap="round"/>
+
+  <!-- AI Spark -->
+  <path d="M352 108L363 142L397 153L363 164L352 198L341 164L307 153L341 142L352 108Z" fill="#FACC15"/>
+
+  <defs>
+    <linearGradient id="faviconGradient" x1="64" y1="48" x2="448" y2="464" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#60A5FA"/>
+      <stop offset="1" stop-color="#2563EB"/>
+    </linearGradient>
+  </defs>
+</svg>

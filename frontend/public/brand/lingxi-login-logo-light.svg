@@ -1,0 +1,31 @@
+<svg width="520" height="140" viewBox="0 0 520 140" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Icon Background -->
+  <rect x="16" y="18" width="104" height="104" rx="30" fill="url(#loginLightGradient)"/>
+
+  <!-- Chat Bubble -->
+  <path d="M40 54C40 42.954 48.954 34 60 34H86C97.046 34 106 42.954 106 54V75C106 86.046 97.046 95 86 95H70L50 111V94C44.018 90.566 40 84.117 40 76.8V54Z" fill="white"/>
+
+  <!-- Face Dots -->
+  <circle cx="64" cy="64" r="4.5" fill="#2563EB"/>
+  <circle cx="84" cy="64" r="4.5" fill="#2563EB"/>
+
+  <!-- Smile -->
+  <path d="M64 77C70 82.5 78 82.5 84 77" stroke="#2563EB" stroke-width="4.5" stroke-linecap="round"/>
+
+  <!-- AI Spark -->
+  <path d="M98 28L102.5 41L116 45.5L102.5 50L98 63L93.5 50L80 45.5L93.5 41L98 28Z" fill="#FACC15"/>
+
+  <!-- Shopping Bag Handle -->
+  <path d="M61 52C61 45.925 65.925 41 72 41C78.075 41 83 45.925 83 52" stroke="#60A5FA" stroke-width="4" stroke-linecap="round"/>
+
+  <!-- Text -->
+  <text x="148" y="67" font-family="Inter, PingFang SC, Microsoft YaHei, Arial, sans-serif" font-size="40" font-weight="700" fill="#0F172A">灵犀客服</text>
+  <text x="150" y="101" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="500" fill="#64748B">Lingxi Support AI</text>
+
+  <defs>
+    <linearGradient id="loginLightGradient" x1="20" y1="20" x2="118" y2="122" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#60A5FA"/>
+      <stop offset="1" stop-color="#2563EB"/>
+    </linearGradient>
+  </defs>
+</svg>
