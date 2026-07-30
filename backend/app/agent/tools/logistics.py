@@ -242,7 +242,7 @@ async def query_logistics(
                 error_msg=None,
             )
 
-        if order_status == 4:
+        if order_status == 6:
             return ToolResult(
                 tool_name="query_logistics",
                 success=True,
@@ -266,8 +266,10 @@ async def query_logistics(
             current_status = "运输中"
         elif order_status == 3:
             current_status = "已签收"
-        elif order_status in [5, 6]:
+        elif order_status == 4:
             current_status = "退款中"
+        elif order_status == 5:
+            current_status = "已退款"
 
         logistics_data = {
             "order_no": order.order_no,

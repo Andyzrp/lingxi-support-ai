@@ -10,17 +10,18 @@ const instance = axios.create({
 })
 
 // ==================== 白名单：公开接口，不携带任何 Token ====================
+// config.url 是相对路径（不含 baseURL 前缀），所以这里存不含 /api/v1 的部分
 const WHITE_LIST = [
-  '/api/v1/auth/login',
-  '/api/v1/auth/register',
-  '/api/v1/admin/auth/login',
-  '/api/v1/products',
-  '/api/v1/products/categories',
+  '/auth/login',
+  '/auth/register',
+  '/admin/auth/login',
+  '/products',
+  '/products/categories',
 ]
 
 function _isWhiteList(url) {
   if (!url) return false
-  return WHITE_LIST.some(w => url.includes(w))
+  return WHITE_LIST.some(w => url === w || url.startsWith(w + '?'))
 }
 
 // ==================== 请求拦截器 ====================

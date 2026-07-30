@@ -5,7 +5,7 @@ from typing import Optional
 from langchain_openai import ChatOpenAI
 from langchain_core.messages import HumanMessage, SystemMessage
 
-from app.agent.state import AgentState, IntentType, AgentAction
+from app.agent.state import AgentState, IntentType
 from app.config import settings
 
 logger = logging.getLogger(__name__)
@@ -362,49 +362,17 @@ async def intent_node(state: AgentState) -> dict:
         if val and not entities.get(key):
             entities[key] = val
 
-    # ── Step4：决定下一步动作 ──
-    next_action = _decide_next_action(intent)
-
     intent_repr = intent.value if intent else "None"
     print(
         f"[INTENT] 意图识别完成 → [{intent_repr}] "
         f"confidence={confidence:.4f} "
-        f"entities={entities} "
-        f"next_action={next_action}"
+        f"entities={entities}"
     )
 
     return {
         "intent": intent,
         "intent_confidence": confidence,
         "extracted_entities": entities,
-        "next_action": next_action,
     }
 
 
-def _decide_next_action(intent: IntentType) -> AgentAction:
-    """
-    根据意图决定下一步动作
-
-    Args:
-        intent: 识别到的意图
-
-    Returns:
-        下一步 AgentAction
-    """
-    # 需要调用工具的意图
-    tool_intents = {
-        IntentType.ORDER_QUERY,
-        IntentType.ORDER_LIST,
-        IntentType.LOGISTICS_QUERY,
-        IntentType.REFUND_REQUEST,
-        IntentType.PRODUCT_QUERY,
-    }
-
-    if intent in tool_intents:
-        return AgentAction.RETRIEVE_RAG  # 先RAG再工具
-
-    if intent == IntentType.COMPLAINT:
-        return AgentAction.RETRIEVE_RAG  # 投诉先查知识库
-
-    # 通用/未知 → 直接RAG
-    return AgentAction.RETRIEVE_RAG

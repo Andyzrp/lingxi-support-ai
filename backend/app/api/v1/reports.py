@@ -234,12 +234,16 @@ async def get_resolve_rate(
     start_str, end_str = start.isoformat(), end.isoformat()
     dates = date_range_list(start, end)
 
-    # 基础统计：每日会话总量 + closed 数量
+    # 基础统计：每日会话总量 + closed 数量，并按 Bot/Agent 分层统计
     stat_sql = text(f"""
         SELECT
             DATE(created_at) AS day,
             COUNT(*)         AS total,
-            COUNT(*) FILTER (WHERE status = 'closed') AS resolved
+            COUNT(*) FILTER (WHERE status = 'closed') AS resolved,
+            COUNT(*) FILTER (WHERE current_mode = 0 AND is_transferred = 0) AS bot_total,
+            COUNT(*) FILTER (WHERE current_mode = 0 AND is_transferred = 0 AND status = 'closed') AS bot_resolved,
+            COUNT(*) FILTER (WHERE current_mode = 1 AND is_transferred = 0) AS agent_total,
+            COUNT(*) FILTER (WHERE current_mode = 1 AND is_transferred = 0 AND status = 'closed') AS agent_resolved
         FROM conversations
         WHERE DATE(created_at) BETWEEN '{start_str}' AND '{end_str}'
         GROUP BY DATE(created_at)
@@ -262,11 +266,14 @@ async def get_resolve_rate(
         if r:
             total = r["total"] or 1
             overall = round(r["resolved"] / total, 4)
+            bot_rate = round(r["bot_resolved"] / r["bot_total"], 4) if r["bot_total"] else 0.0
+            agent_rate = round(r["agent_resolved"] / r["agent_total"], 4) if r["agent_total"] else 0.0
         else:
-            total = 0
             overall = 0.0
-        bot_resolve_rate.append(0.0)
-        agent_resolve_rate.append(0.0)
+            bot_rate = 0.0
+            agent_rate = 0.0
+        bot_resolve_rate.append(bot_rate)
+        agent_resolve_rate.append(agent_rate)
         overall_resolve_rate.append(overall)
 
     data = ResolveRateTrendSchema(

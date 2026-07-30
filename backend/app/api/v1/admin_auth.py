@@ -58,20 +58,12 @@ async def admin_login(
 
     access_token = create_access_token(subject=admin.id, role=role)
     refresh_token = create_refresh_token(subject=admin.id, role=role)
-    store_refresh_token(user_id=admin.id, role=role, token=refresh_token)
+    await store_refresh_token(user_id=admin.id, role=role, token=refresh_token)
 
     return Response.success(
         data=AdminLoginResponse(
             access_token=access_token,
             refresh_token=refresh_token,
-            admin_info=AdminInfo.model_validate(admin),
-        ),
-        message="登录成功",
-    )
-
-    return Response.success(
-        data=AdminLoginResponse(
-            access_token=token,
             admin_info=AdminInfo.model_validate(admin),
         ),
         message="登录成功",
@@ -245,7 +237,7 @@ async def admin_refresh_token(
 
     admin_id = int(payload["sub"])
 
-    stored = get_stored_refresh_token(user_id=admin_id, role=payload["role"])
+    stored = await get_stored_refresh_token(user_id=admin_id, role=payload["role"])
     if stored != body.refresh_token:
         raise HTTPException(
             status_code=401,
@@ -280,5 +272,5 @@ async def admin_logout(
     """退出登录，删除 Redis 中的 Refresh Token"""
     role_map = {0: "super_admin", 1: "admin", 2: "operator"}
     role = role_map.get(current_admin.role, "admin")
-    delete_refresh_token(user_id=current_admin.id, role=role)
+    await delete_refresh_token(user_id=current_admin.id, role=role)
     return Response.success(message="已退出登录")

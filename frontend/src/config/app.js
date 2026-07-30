@@ -49,10 +49,10 @@ const appConfig = {
   copyright: '© 2026 灵犀智能客服系统',
   techTags:  ['DeepSeek', 'LangGraph', 'Qdrant'],
 
-  // ── 客服 WebSocket 配置 [1] ───────────────
+  // ── 客服欢迎语 ──────────────────────────────
   chat: {
-    channelToken: 'LrDSr5ZRFjCu0mBunFxOTiMTTVeZ8m7xCJhqygIfHmw',
-    welcomeMsg:   '您好！我是灵犀客服 😊 请问有什么可以帮您？',
+    // channelToken 应由调用方通过 route.query.channel 动态传入，不要写死
+    welcomeMsg: '您好！我是灵犀客服 😊 请问有什么可以帮您？',
   },
 }
 

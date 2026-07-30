@@ -9,7 +9,6 @@ from app.agent.state import (
     RagResult,
     state_set_error,
 )
-from app.services.bot.faq import process_faq
 from app.crud.knowledge import crud_knowledge_item
 
 logger = logging.getLogger(__name__)
@@ -23,10 +22,11 @@ async def rag_node(state: AgentState, db: AsyncSession) -> dict:
     LangGraph RAG检索节点
 
     执行流程：
-    1. 调用 process_faq（含关键词干预+混合检索）
-    2. 命中 → 构建 rag_context 注入Prompt
-    3. 未命中 → 根据意图决定是否调用工具
-    4. 关键词触发转人工 → 直接转人工
+    1. 关键词干预（最高优先级）
+    2. 向量检索获取候选知识
+    3. 命中 → 构建 rag_context 注入Prompt
+    4. 未命中 → 根据意图决定是否调用工具
+    5. 关键词触发转人工 → 直接转人工
 
     Args:
         state: 当前Agent状态
@@ -152,13 +152,10 @@ async def rag_node(state: AgentState, db: AsyncSession) -> dict:
 
         print(f"[RAG] 共 {len(rag_results)} 条候选知识，传给LLM判断")
 
-        print(f"[RAG] 知识标题: {rag_result['title']}")
-        print(f"[RAG] 知识答案: {rag_result['answer'][:100]}...")
-
-        rag_context = _build_rag_context([rag_result])
+        rag_context = _build_rag_context(rag_results)
 
         return {
-            "rag_results": [rag_result],
+            "rag_results": rag_results,
             "rag_context": rag_context,
             "next_action": _decide_next_action_after_rag(
                 intent=intent,
@@ -222,17 +219,9 @@ def _decide_next_action_after_rag(
     """
     RAG检索后决定下一步动作
 
-    决策规则：
-    ┌─────────────────────────────────────────────┐
-    │ 意图           │ RAG命中 │ 有实体 │ 下一步   │
-    ├────────────────┼─────────┼────────┼──────────│
-    │ order_query    │ 任意    │ 任意   │ CALL_TOOL│
-    │ logistics_query│ 任意    │ 任意   │ CALL_TOOL│
-    │ refund_request │ 任意    │ 任意   │ CALL_TOOL│
-    │ product_query  │ 未命中  │ 有名称 │ CALL_TOOL│
-    │ 其他           │ 命中    │ 任意   │ GENERATE │
-    │ 其他           │ 未命中  │ 任意   │ GENERATE │
-    └─────────────────────────────────────────────┘
+    注意：graph.py 中 route_after_intent 只会把 GENERAL/UNKNOWN 意图路由到
+    rag节点，订单/物流/退款/商品等意图在intent节点后就已直接分流到tool节点，
+    不会经过这里。因此本函数无论rag是否命中、intent是什么，始终进入生成节点。
 
     Args:
         intent: 意图类型
@@ -242,23 +231,4 @@ def _decide_next_action_after_rag(
     Returns:
         AgentAction
     """
-    from app.agent.state import IntentType
-
-    # 订单/物流/退款 → 必须调用工具
-    tool_required_intents = {
-        IntentType.ORDER_QUERY,
-        IntentType.LOGISTICS_QUERY,
-        IntentType.REFUND_REQUEST,
-    }
-
-    if intent in tool_required_intents:
-        return AgentAction.CALL_TOOL
-
-    # 商品查询 → 有商品名称才调工具
-    if intent == IntentType.PRODUCT_QUERY:
-        has_product_name = bool(extracted_entities.get("product_name"))
-        if has_product_name:
-            return AgentAction.CALL_TOOL
-
-    # 其他情况 → 直接生成
     return AgentAction.GENERATE

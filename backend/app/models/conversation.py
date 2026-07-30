@@ -108,6 +108,9 @@ class Conversation(Base):
         index=True,
         comment="会话状态: active/closed/transferred",
     )
+    eval_pushed_at: Mapped[datetime | None] = mapped_column(
+        DateTime, nullable=True, comment="评价卡片推送时间"
+    )
 
     def __repr__(self):
         return f"<Conversation {self.conversation_no}>"

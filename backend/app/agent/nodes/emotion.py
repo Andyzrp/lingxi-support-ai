@@ -15,9 +15,6 @@ logger = logging.getLogger(__name__)
 # 情绪激动触发转人工的阈值
 ANGRY_TRANSFER_THRESHOLD = 0.85
 
-# 负面情绪分数阈值（超过则记录，但不一定转人工）
-NEGATIVE_THRESHOLD = 0.7
-
 
 # ==================== 规则关键词 ====================
 
@@ -120,11 +117,7 @@ def _rule_based_emotion(query: str) -> Optional[dict]:
             "reason": f"规则命中正面关键词: {positive_hits[:3]}",
         }
 
-    return {
-        "emotion": EmotionType.NEUTRAL,
-        "emotion_score": 0.5,
-        "reason": "规则未命中情绪关键词，默认中性",
-    }
+    return None
 
 
 # ==================== LLM情绪检测 ====================

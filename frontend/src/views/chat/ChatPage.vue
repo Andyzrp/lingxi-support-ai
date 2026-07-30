@@ -319,8 +319,10 @@ function removeThinking() {
 }
 
 function connect() {
-  const wsPort = window.location.port === '3000' ? '8000' : window.location.port
-  const url = `ws://127.0.0.1:${wsPort}/api/v1/chat/ws/${channelToken}?user_id=${encodeURIComponent(userId)}`
+  const proto = window.location.protocol === 'https:' ? 'wss' : 'ws'
+  const host  = window.location.hostname
+  const port  = window.location.port === '3000' ? '8000' : window.location.port
+  const url   = `${proto}://${host}:${port}/api/v1/chat/ws/${channelToken}?user_id=${encodeURIComponent(userId)}`
   wsStatus.value = 'connecting'
   ws = new WebSocket(url)
 

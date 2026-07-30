@@ -69,7 +69,7 @@ async def login(
 
     access_token = create_access_token(subject=user.id, role="user")
     refresh_token = create_refresh_token(subject=user.id, role="user")
-    store_refresh_token(user_id=user.id, role="user", token=refresh_token)
+    await store_refresh_token(user_id=user.id, role="user", token=refresh_token)
 
     return Response.success(
         data=UserLoginResponse(
@@ -156,7 +156,7 @@ async def refresh_token(
 
     user_id = int(payload["sub"])
 
-    stored = get_stored_refresh_token(user_id=user_id, role="user")
+    stored = await get_stored_refresh_token(user_id=user_id, role="user")
     if stored != body.refresh_token:
         raise HTTPException(
             status_code=401,
@@ -187,5 +187,5 @@ async def logout(
     current_user: User = Depends(get_current_user),
 ):
     """退出登录，删除 Redis 中的 Refresh Token"""
-    delete_refresh_token(user_id=current_user.id, role="user")
+    await delete_refresh_token(user_id=current_user.id, role="user")
     return Response.success(message="已退出登录")

@@ -24,7 +24,7 @@ from app.schemas.conversation import (
     MessageOut,
 )
 from app.utils.response import Response, PageResponse
-from app.core.security import get_current_admin_id, get_current_user_id
+from app.core.security import get_current_admin_id, oauth2_scheme, decode_token
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -487,9 +487,9 @@ async def transfer_to_human(
     if not conversation:
         raise HTTPException(status_code=404, detail="会话不存在")
 
-    if conversation.transfer_status == 1:
+    if conversation.is_transferred == 1:
         return Response.success(
-            data={"agent_name": conversation.agent_name}, message="已在人工客服处理中"
+            data={"agent_name": conversation.staff_name}, message="已在人工客服处理中"
         )
 
     agent_name = random.choice(AGENT_NAMES)
@@ -522,7 +522,7 @@ async def evaluate_conversation(
     if not conversation:
         raise HTTPException(status_code=404, detail="会话不存在")
 
-    if conversation.status == 2:
+    if conversation.evaluated == 1:
         raise HTTPException(status_code=400, detail="该会话已评价")
 
     conversation = await crud_conversation.set_evaluate(
@@ -618,16 +618,31 @@ async def list_conversations(
 
 
 @router.get(
-    "/conversations/{conversation_id}/messages", summary="获取会话消息记录（管理员）"
+    "/conversations/{conversation_id}/messages", summary="获取会话消息记录"
 )
 async def get_conversation_messages(
     conversation_id: int,
     db: AsyncSession = Depends(get_db),
-    admin_id: int = Depends(get_current_admin_id),
+    token: str = Depends(oauth2_scheme),
 ):
+    """
+    获取会话消息记录
+
+    管理员Token：可查看任意会话
+    用户Token：仅可查看自己拥有的会话
+    """
+    payload = decode_token(token)
+    role = payload.get("role")
+    subject_id = payload.get("sub")
+    is_admin = role in ("admin", "super_admin", "operator")
+
     conversation = await crud_conversation.get(db, conversation_id)
     if not conversation:
         raise HTTPException(status_code=404, detail="会话不存在")
+
+    if not is_admin:
+        if role != "user" or not subject_id or int(subject_id) != conversation.user_id:
+            raise HTTPException(status_code=403, detail="无权访问该会话")
 
     messages = await crud_message.get_list(
         db=db,
@@ -651,50 +666,6 @@ async def get_conversation_messages(
                 confidence_score=(msg.extra or {}).get("confidence_score"),
                 card_type=(msg.extra or {}).get("card_type"),
                 card_data=(msg.extra or {}).get("card_data"),
-                created_at=msg.created_at,
-            )
-        )
-
-    return Response.success(data=result)
-
-
-@router.get(
-    "/conversations/{conversation_id}/messages",
-    summary="获取会话消息记录（用户）",
-)
-async def get_user_conversation_messages(
-    conversation_id: int,
-    db: AsyncSession = Depends(get_db),
-    user_id: int = Depends(get_current_user_id),
-):
-    """用户获取自己的会话消息记录"""
-    conversation = await crud_conversation.get(db, conversation_id)
-    if not conversation:
-        raise HTTPException(status_code=404, detail="会话不存在")
-
-    if conversation.user_id != user_id:
-        raise HTTPException(status_code=403, detail="无权访问该会话")
-
-    messages = await crud_message.get_list(
-        db=db,
-        conversation_id=conversation_id,
-        limit=200,
-    )
-
-    result = []
-    for msg in messages:
-        result.append(
-            MessageOut(
-                id=msg.id,
-                conversation_id=msg.conversation_id,
-                role=msg.sender_type,
-                role_text=ROLE_TEXT_MAP.get(msg.sender_type, "unknown"),
-                message_type=msg.content_type,
-                content=msg.content or "",
-                answer_source=(msg.extra or {}).get("answer_source"),
-                intent=(msg.extra or {}).get("intent"),
-                emotion=(msg.extra or {}).get("emotion"),
-                confidence_score=(msg.extra or {}).get("confidence_score"),
                 created_at=msg.created_at,
             )
         )

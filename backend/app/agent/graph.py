@@ -275,8 +275,10 @@ def build_graph(db: AsyncSession) -> StateGraph:
     """
     构建 LangGraph 工作流图
 
-    节点执行顺序：
-    emotion → intent → rag → [tool?] → generate → confidence → [transfer?] → END
+    节点执行顺序（意图识别后三分支）：
+    emotion → intent → tool → generate → confidence → [transfer?] → END          （订单/物流/退款/商品意图）
+    emotion → intent → rag → generate → confidence → [transfer?] → END           （通用/未知意图）
+    emotion → intent → generate → confidence → [transfer?] → END                 （投诉/无意图，或情绪触发转人工）
 
     Args:
         db: 数据库Session（注入到需要DB的节点）
@@ -603,6 +605,7 @@ async def run_agent(
         "llm_tokens_used": final_state.get("llm_tokens_used", 0),
         "elapsed_ms": elapsed_ms,
         "error": final_state.get("error"),
+        "tool_results": tool_results,
     }
 
     if card_type and card_data:

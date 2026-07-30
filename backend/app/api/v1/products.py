@@ -173,12 +173,12 @@ async def delete_product(
 @router.patch("/admin/{product_id}/status", response_model=Response[ProductInfo], summary="更新商品状态")
 async def update_product_status(
     product_id: int,
-    status: int,
+    new_status: int,
     db: AsyncSession = Depends(get_db),
     current_admin: Admin = Depends(get_current_admin),
 ):
     """上架/下架商品（管理员）"""
-    if status not in [0, 1]:
+    if new_status not in [0, 1]:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="状态值无效，0下架/1上架",
@@ -189,7 +189,7 @@ async def update_product_status(
     product = await crud_product.update_product(
         db=db,
         product=product,
-        status=status,
+        status=new_status,
     )
     return Response.success(
         data=ProductInfo.model_validate(product),

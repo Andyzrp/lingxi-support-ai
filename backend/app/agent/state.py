@@ -1,8 +1,7 @@
 # backend/app/agent/state.py
 from typing import Optional, List, Any
-from typing_extensions import TypedDict, Annotated
+from typing_extensions import TypedDict
 from enum import Enum
-import operator
 
 
 # ==================== 枚举定义 ====================
@@ -145,7 +144,7 @@ class AgentState(TypedDict):
     """计划调用的工具列表"""
 
     tool_results: List[ToolResult]
-    """工具调用结果列表（使用operator.add累积）"""
+    """工具调用结果列表（tool_node每次执行返回完整列表覆盖，非reducer累积）"""
 
     # ── 生成结果 ──
     generated_answer: Optional[str]

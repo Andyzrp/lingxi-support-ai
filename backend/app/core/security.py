@@ -161,7 +161,7 @@ def verify_refresh_token(token: str) -> dict:
 
 
 def _get_redis():
-    import redis
+    import redis.asyncio as redis
 
     return redis.Redis(
         host=settings.REDIS_HOST,
@@ -172,7 +172,7 @@ def _get_redis():
     )
 
 
-def store_refresh_token(user_id: int, role: str, token: str) -> None:
+async def store_refresh_token(user_id: int, role: str, token: str) -> None:
     """
     登录成功后将 Refresh Token 存入 Redis
     key 格式：refresh_token:{role}:{user_id}
@@ -180,18 +180,22 @@ def store_refresh_token(user_id: int, role: str, token: str) -> None:
     """
     r = _get_redis()
     key = f"refresh_token:{role}:{user_id}"
-    r.setex(key, 604800, token)
+    await r.setex(key, 604800, token)
+    await r.aclose()
 
 
-def get_stored_refresh_token(user_id: int, role: str) -> str | None:
+async def get_stored_refresh_token(user_id: int, role: str) -> str | None:
     """从 Redis 读取已存储的 Refresh Token"""
     r = _get_redis()
     key = f"refresh_token:{role}:{user_id}"
-    return r.get(key)
+    value = await r.get(key)
+    await r.aclose()
+    return value
 
 
-def delete_refresh_token(user_id: int, role: str) -> None:
+async def delete_refresh_token(user_id: int, role: str) -> None:
     """退出登录时删除 Refresh Token（主动失效）"""
     r = _get_redis()
     key = f"refresh_token:{role}:{user_id}"
-    r.delete(key)
+    await r.delete(key)
+    await r.aclose()

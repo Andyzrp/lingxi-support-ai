@@ -68,12 +68,6 @@ class CRUDKnowledgeBase:
         await db.commit()
         return await self.get(db, kb_id)
 
-        await db.execute(
-            update(KnowledgeBase).where(KnowledgeBase.id == kb_id).values(**update_data)
-        )
-        await db.commit()
-        return await self.get(db, kb_id)
-
     async def get_item_count(
         self,
         db: AsyncSession,

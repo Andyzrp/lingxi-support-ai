@@ -1,7 +1,7 @@
 # backend/app/services/bot/faq.py
 import logging
 import time
-from typing import Optional, List
+from typing import Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.crud.bot import crud_bot
@@ -10,129 +10,6 @@ from app.services.knowledge.vectorizer import search_similar
 from app.schemas.bot import FaqHit, FaqSearchResponse
 
 logger = logging.getLogger(__name__)
-
-
-# ==================== BM25检索 ====================
-
-
-def _bm25_score(query: str, text: str) -> float:
-    """
-    简化版BM25打分（基于字符覆盖率）
-    """
-    if not query or not text:
-        return 0.0
-
-    query = query.strip().lower()
-    text = text.strip().lower()
-
-    if query == text:
-        return 1.0
-
-    if query in text:
-        return 0.9
-
-    query_chars = set(query)
-    text_chars = set(text)
-
-    if not query_chars:
-        return 0.0
-
-    intersection = query_chars & text_chars
-    coverage = len(intersection) / len(query_chars)
-    return round(coverage * 0.8, 4)
-
-
-def _compute_bm25_for_items(
-    query: str,
-    items: List[dict],
-) -> List[dict]:
-    """对候选条目列表计算BM25得分"""
-    for item in items:
-        title_score = _bm25_score(query, item.get("title", ""))
-        similar_scores = [
-            _bm25_score(query, q) for q in item.get("similar_questions", [])
-        ]
-        max_similar_score = max(similar_scores) if similar_scores else 0.0
-        item["bm25_score"] = max(title_score, max_similar_score)
-    return items
-
-
-# ==================== 混合检索 ====================
-
-
-async def hybrid_search(
-    query: str,
-    kb_id: int,
-    top_k: int = 5,
-    bm25_weight: float = 0.3,
-    vector_weight: float = 0.7,
-    score_threshold: float = 0.0,
-) -> List[dict]:
-    """
-    BM25 + Embedding 混合检索
-
-    流程：
-    1. 向量检索召回 top_k*3 候选
-    2. 计算BM25分
-    3. 加权融合：final = bm25*bm25_weight + vector*vector_weight
-    4. 过滤阈值，排序返回
-    """
-    # ── Step1：向量检索召回 ──
-    recall_size = min(top_k * 3, 20)
-    try:
-        vector_hits = await search_similar(
-            query=query,
-            kb_id=kb_id,
-            top_k=recall_size,
-            score_threshold=0.0,
-        )
-    except Exception as e:
-        logger.error(f"向量检索失败: {e}")
-        vector_hits = []
-
-    if not vector_hits:
-        return []
-
-    # ── Step2：按item_id去重，保留最高向量分 ──
-    item_vector_map: dict = {}
-    for hit in vector_hits:
-        item_id = hit["item_id"]
-        if (
-            item_id not in item_vector_map
-            or hit["vector_score"] > item_vector_map[item_id]["vector_score"]
-        ):
-            item_vector_map[item_id] = hit
-
-    # ── Step3：构建候选列表 ──
-    candidates = []
-    for item_id, hit in item_vector_map.items():
-        candidates.append(
-            {
-                "item_id": item_id,
-                "title": hit["question"] if hit.get("is_title") else "",
-                "matched_question": hit["question"],
-                "vector_score": hit["vector_score"],
-                "similar_questions": [],
-                "bm25_score": 0.0,
-            }
-        )
-
-    # ── Step4：计算BM25分 ──
-    candidates = _compute_bm25_for_items(query, candidates)
-
-    # ── Step5：加权融合 ──
-    for c in candidates:
-        c["score"] = round(
-            c["bm25_score"] * bm25_weight + c["vector_score"] * vector_weight,
-            4,
-        )
-
-    # ── Step6：过滤阈值 + 排序 ──
-    candidates = [c for c in candidates if c["score"] >= score_threshold]
-    candidates.sort(key=lambda x: x["score"], reverse=True)
-    candidates = candidates[:top_k]
-
-    return candidates
 
 
 # ==================== FAQ检索主入口 ====================

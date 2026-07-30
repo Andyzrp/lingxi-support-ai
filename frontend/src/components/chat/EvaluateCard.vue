@@ -112,11 +112,9 @@ async function handleSubmit() {
 
   submitting.value = true
   try {
-    // 对接后端评价接口 [1]
     await chatApi.evaluate(chatStore.conversationId, {
-      rating:   rating.value,
-      tags:     selectedTags.value,
-      remark:   remark.value || undefined,
+      rating: rating.value,
+      comment: remark.value || undefined,
     })
     ElMessage.success('感谢您的评价 😊')
     emit('submitted')

@@ -13,17 +13,17 @@ logger = logging.getLogger(__name__)
 # ==================== 退款条件定义 ====================
 
 # 可申请退款的订单状态
-REFUNDABLE_STATUS = [1, 2, 3]  # 已付款、已发货、已完成
+REFUNDABLE_STATUS = [1, 2, 3]  # 已付款、已发货、已收货
 
-# 退款状态说明
+# 退款状态说明（须与 schemas/order.py、crud/order.py 保持一致）
 REFUND_STATUS_MAP = {
     0: "待付款",
     1: "已付款",
     2: "已发货",
-    3: "已完成",
-    4: "已取消",
-    5: "退款中",
-    6: "已退款",
+    3: "已收货",
+    4: "退款中",
+    5: "已退款",
+    6: "已取消",
 }
 
 
@@ -140,7 +140,7 @@ async def check_refund_eligibility(
             base_data["card_data"]["refund_tip"] = tip
 
         # 已经在退款中
-        if order.status == 5:
+        if order.status == 4:
             base_data["eligible"] = False
             base_data["reason"] = "该订单已在退款处理中，请耐心等待"
             _set_card_refund(False, "该订单已在退款处理中，请耐心等待")
@@ -152,7 +152,7 @@ async def check_refund_eligibility(
             )
 
         # 已经退款完成
-        if order.status == 6:
+        if order.status == 5:
             base_data["eligible"] = False
             base_data["reason"] = "该订单已完成退款"
             _set_card_refund(False, "该订单已完成退款")
@@ -164,7 +164,7 @@ async def check_refund_eligibility(
             )
 
         # 已取消
-        if order.status == 4:
+        if order.status == 6:
             base_data["eligible"] = False
             base_data["reason"] = "该订单已取消，无需退款"
             _set_card_refund(False, "该订单已取消，无需退款")
@@ -231,7 +231,7 @@ async def apply_refund(
 
     流程：
     1. 检查退款资格
-    2. 更新订单状态为退款中(5)
+    2. 更新订单状态为退款中(4)
     3. 记录退款原因
 
     Args:
@@ -278,7 +278,7 @@ async def apply_refund(
         await db.execute(
             update(Order)
             .where(Order.order_no == actual_order_no)
-            .values(status=5)  # 退款中
+            .values(status=4)  # 退款中
         )
         await db.commit()
 
@@ -299,7 +299,7 @@ async def apply_refund(
                 "card_type": "order",
                 "card_data": {
                     "order_no": actual_order_no,
-                    "status": 5,
+                    "status": 4,
                     "status_text": "退款中",
                     "total_amount": refund_amount,
                 },

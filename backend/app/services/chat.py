@@ -445,7 +445,7 @@ async def process_chat(
 
     tool_results = result.get("tool_results", [])
     tools_list = (
-        [tr.get("tool", "unknown") for tr in tool_results] if tool_results else None
+        [tr.get("tool_name", "unknown") for tr in tool_results] if tool_results else None
     )
 
     _emotion_map = {"neutral": 0, "negative": 2, "angry": 3}
