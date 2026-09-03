@@ -16,6 +16,7 @@ class IntentType(str, Enum):
     REFUND_REQUEST = "refund_request"  # 退款申请
     PRODUCT_QUERY = "product_query"  # 商品咨询
     COMPLAINT = "complaint"  # 投诉
+    CHITCHAT = "chitchat"  # 闲聊/打招呼/答谢/身份询问
     GENERAL = "general"  # 通用咨询
     UNKNOWN = "unknown"  # 未知意图
 

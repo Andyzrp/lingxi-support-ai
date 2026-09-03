@@ -74,6 +74,54 @@ def _rule_based_intent(query: str) -> Optional[dict]:
     """
     query_lower = query.strip().lower()
 
+    # ── 闲聊/打招呼/答谢/身份询问（必须最先匹配，避免"你好，我要查订单"被业务关键词截走） ──
+    # 仅当整句是闲聊才拦截，包含业务关键词的不拦截
+    chitchat_keywords = {
+        "你好": "greeting",
+        "您好": "greeting",
+        "hello": "greeting",
+        "hi": "greeting",
+        "在吗": "greeting",
+        "有人吗": "greeting",
+        "在不在": "greeting",
+        "谢谢": "thanks",
+        "感谢": "thanks",
+        "多谢": "thanks",
+        "thanks": "thanks",
+        "thank you": "thanks",
+        "辛苦了": "thanks",
+        "麻烦了": "thanks",
+        "再见": "bye",
+        "拜拜": "bye",
+        "88": "bye",
+        "bye": "bye",
+        "晚安": "bye",
+        "你是谁": "identity",
+        "你叫什么": "identity",
+        "你是机器人吗": "identity",
+        "你是人工吗": "identity",
+        "你是ai吗": "identity",
+        "能帮你什么": "identity",
+        "你能做什么": "identity",
+        "你会什么": "identity",
+    }
+    # 业务关键词清单（出现这些词时不拦截为闲聊，即使含"你好"）
+    business_kws = [
+        "订单", "快递", "物流", "发货", "退款", "退货", "商品", "价格",
+        "多少钱", "库存", "售后", "投诉", "运单", "购买", "付款", "下单",
+    ]
+    has_business = any(kw in query_lower for kw in business_kws)
+    # 整句较短（≤12字符）且命中闲聊关键词，或纯问候语
+    if not has_business and len(query_lower) <= 12:
+        for kw, sub_type in chitchat_keywords.items():
+            if kw in query_lower:
+                return {
+                    "intent": IntentType.CHITCHAT,
+                    "confidence": 0.98,
+                    "entities": {"chitchat_sub": sub_type},
+                    "reason": f"规则命中闲聊关键词: {kw} (sub={sub_type})",
+                }
+
     # 物流查询关键词
     logistics_keywords = [
         "快递",

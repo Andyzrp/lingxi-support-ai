@@ -221,6 +221,11 @@ def route_after_intent(state: AgentState) -> str:
         print(f"[ROUTE] └─ → [transfer]  转人工")
         return "transfer"
 
+    # 闲聊快速通道：直接返回预设回复，不走 RAG/LLM/置信度
+    if intent == IntentType.CHITCHAT:
+        print(f"[ROUTE] └─ → [chitchat]   闲聊快速通道")
+        return "chitchat"
+
     if intent in TOOL_INTENTS:
         print(f"[ROUTE] └─ → [tool]      工具调用分支")
         return "tool"
@@ -333,6 +338,11 @@ def build_graph(db: AsyncSession) -> StateGraph:
         transfer_node,
     )
 
+    # 闲聊快速回复节点
+    from app.agent.nodes.chitchat import chitchat_node
+
+    graph.add_node("chitchat", chitchat_node)
+
     # ── 设置入口节点 ──
     graph.set_entry_point("emotion")
 
@@ -348,7 +358,7 @@ def build_graph(db: AsyncSession) -> StateGraph:
         },
     )
 
-    # 意图识别 → 工具 or RAG or 生成 or 转人工
+    # 意图识别 → 工具 or RAG or 生成 or 闲聊 or 转人工
     graph.add_conditional_edges(
         "intent",
         route_after_intent,
@@ -356,9 +366,13 @@ def build_graph(db: AsyncSession) -> StateGraph:
             "tool": "tool",
             "rag": "rag",
             "generate": "generate",
+            "chitchat": "chitchat",
             "transfer": "transfer",
         },
     )
+
+    # 闲聊 → 直接结束（确定性回复，不走后续流程）
+    graph.add_edge("chitchat", END)
 
     # RAG检索 → 工具调用 or 生成 or 转人工
     graph.add_conditional_edges(
@@ -432,6 +446,11 @@ def build_agent_graph() -> StateGraph:
     graph.add_node("confidence", confidence_node)
     graph.add_node("transfer", transfer_node)
 
+    # 闲聊快速回复节点
+    from app.agent.nodes.chitchat import chitchat_node
+
+    graph.add_node("chitchat", chitchat_node)
+
     graph.set_entry_point("emotion")
 
     graph.add_conditional_edges(
@@ -443,8 +462,11 @@ def build_agent_graph() -> StateGraph:
     graph.add_conditional_edges(
         "intent",
         route_after_intent,
-        {"rag": "rag", "transfer": "transfer"},
+        {"rag": "rag", "chitchat": "chitchat", "transfer": "transfer"},
     )
+
+    # 闲聊 → 直接结束
+    graph.add_edge("chitchat", END)
 
     graph.add_conditional_edges(
         "rag",
