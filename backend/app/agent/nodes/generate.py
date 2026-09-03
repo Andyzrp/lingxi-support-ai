@@ -15,6 +15,68 @@ from app.config import settings
 
 logger = logging.getLogger(__name__)
 
+# 工具失败时的用户友好文案（不暴露内部工具名，给出下一步指引）
+TOOL_FAIL_REPLY = {
+    "query_logistics": (
+        "小灵暂时没有查到您的物流信息哦～可能是商家还未发货："
+        "下单后 1-2 个工作日内会发货，发货后就可以查询物流啦。\n"
+        "如果您有具体订单号，也可以发给我，我帮您查询～"
+    ),
+    "query_order": (
+        "小灵暂时没有找到您的订单信息哦～请确认一下订单号是否正确，"
+        "或者告诉我下单时用的手机号，我再帮您查查～"
+    ),
+    "query_orders": (
+        "您最近还没有订单记录哦～可以去商城逛逛，遇到喜欢的随时下单～"
+    ),
+    "check_refund_eligibility": (
+        "小灵暂时没有查到符合条件的订单哦～"
+        "如果您有售后问题，请告诉我订单号和具体情况，我来帮您确认～"
+    ),
+    "apply_refund": (
+        "退款申请暂时没有提交成功哦～"
+        "请告诉我订单号和退款原因，我来帮您处理～"
+    ),
+    "query_product": (
+        "暂时没有找到相关商品呢～可以告诉我您想找的品类或预算，"
+        "我帮您推荐合适的宝贝～"
+    ),
+    "query_hot_products": (
+        "暂时没有找到相关商品呢～可以告诉我您想找的品类或预算，"
+        "我帮您推荐合适的宝贝～"
+    ),
+}
+
+# 工具成功时的客服口吻包装模板（{content} 由 tool_context 替换）
+TOOL_SUCCESS_REPLY = {
+    "query_logistics": (
+        "已为您查到物流信息，请查看：\n\n{content}\n\n"
+        "如有其他问题，欢迎继续咨询小灵～"
+    ),
+    "query_order": (
+        "已为您查到订单信息，请查看：\n\n{content}\n\n"
+        "如有其他问题，欢迎继续咨询小灵～"
+    ),
+    "query_orders": (
+        "已为您查到订单列表，请查看：\n\n{content}"
+    ),
+    "check_refund_eligibility": (
+        "已为您确认退款资格，请查看：\n\n{content}\n\n"
+        "如需进一步处理，请告诉我～"
+    ),
+    "apply_refund": (
+        "退款申请已处理，请查看处理结果：\n\n{content}\n\n"
+        "如有疑问，请随时告诉小灵～"
+    ),
+    "query_product": (
+        "已为您找到相关商品：\n\n{content}\n\n"
+        "喜欢的话可以直接下单哦～"
+    ),
+    # 该工具返回的文本本身就带"以下是我们的热销商品："开头，不再额外包装
+    "query_hot_products": "{content}",
+}
+
+
 BASE_SYSTEM_PROMPT = """你是灵犀智能客服，一个专业、友善的电商客服助手。
 
 ## 你的职责
@@ -235,6 +297,22 @@ async def generate_node(state: AgentState) -> dict:
         tool_name = tool_results[0].get("tool_name", "unknown")
         print(f"[GENERATE] │  → 命中工具分支[{tool_name}]，跳过LLM直接返回")
 
+        # 工具失败 → 友好文案兜底（不暴露内部工具名，给出下一步指引）
+        if not tool_results[0].get("success"):
+            friendly_reply = TOOL_FAIL_REPLY.get(
+                tool_name,
+                "暂时未能查询到相关信息，请您稍后再试，或告诉我更多细节，我来帮您解决～",
+            )
+            print(f"[GENERATE] │  → 工具失败[{tool_name}]，返回友好文案")
+            return {
+                **state_set_answer(
+                    answer=friendly_reply, source="tool", confidence=0.9
+                ),
+                "llm_tokens_used": 0,
+                # 与工具成功分支同流程（过置信度，tool 权重 1.0 必过），仅替换文案
+                "next_action": AgentAction.CHECK_CONFIDENCE,
+            }
+
         tool_data = tool_results[0].get("data") or {}
         if not isinstance(tool_data, dict):
             tool_data = {}
@@ -255,14 +333,16 @@ async def generate_node(state: AgentState) -> dict:
         else:
             try:
                 tool_context = _build_tool_context(tool_results)
+                # 用客服口吻包装，不暴露内部工具名【query_xxx】
+                template = TOOL_SUCCESS_REPLY.get(tool_name, "{content}")
                 answer = (
-                    f"【{tool_name}】{tool_context}"
+                    template.format(content=tool_context)
                     if tool_context
-                    else f"已为您查询完成"
+                    else "已为您查询完成，如有其他问题请随时告诉我～"
                 )
             except Exception as e:
                 logger.error(f"构建工具上下文失败: {e}")
-                answer = f"已为您查询完成"
+                answer = "已为您查询完成，如有其他问题请随时告诉我～"
                 card_type = None
                 card_data = None
 
