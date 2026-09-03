@@ -24,6 +24,18 @@
 
 ---
 
+## 🏗️ 系统架构
+
+系统采用五层架构，架构总览如下图：
+
+![系统架构图](docs/architecture.svg)
+
+### 对话处理流程
+
+![对话处理流程](docs/chat-flow.svg)
+
+---
+
 ## ✨ 核心特性
 
 ### 🛡️ Bot + Agent 双层拦截
@@ -105,18 +117,6 @@ Agent 可调用4种工具获取真实数据，工具成功/失败均返回**客�
     <td><img src="docs/images/knowledge-items.png" width="400"></td>
   </tr>
 </table>
-
----
-
-## 🏗️ 系统架构
-
-系统采用五层架构，架构总览如下图：
-
-![系统架构图](docs/architecture.svg)
-
-### 对话处理流程
-
-![对话处理流程](docs/chat-flow.svg)
 
 ---
 
