@@ -1,0 +1,10 @@
+# backend 构建上下文的排除规则（根目录 .dockerignore 对本目录无效）
+.env
+*.env
+__pycache__/
+*.py[oc]
+.pytest_cache/
+.venv/
+venv/
+uploads/
+tests/
