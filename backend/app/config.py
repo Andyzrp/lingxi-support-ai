@@ -10,6 +10,9 @@ class Settings(BaseSettings):
     SECRET_KEY: str = "lingxi_secret_key_change_in_production"
     API_V1_STR: str = "/api/v1"
 
+    # 上传文件目录（容器内默认挂载到 /app/uploads）
+    UPLOAD_DIR: str = "./uploads"
+
     # PostgreSQL
     POSTGRES_HOST: str
     POSTGRES_PORT: int = 5432
