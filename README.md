@@ -156,7 +156,7 @@ Agent 可调用4种工具获取真实数据，工具成功/失败均返回**客�
 
 ```bash
 # 克隆项目
-git clone https://github.com/你的用户名/lingxi-support-ai.git
+git clone https://github.com/Andyzrp/lingxi-support-ai.git
 cd lingxi-support-ai
 
 # 配置环境变量
