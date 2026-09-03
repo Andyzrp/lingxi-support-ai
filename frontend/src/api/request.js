@@ -1,7 +1,7 @@
 import axios from 'axios'
 import { ElMessage } from 'element-plus'
 
-const BASE_URL = `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'}/api/v1`
+const BASE_URL = `${import.meta.env.VITE_API_BASE_URL || ''}/api/v1`
 
 const instance = axios.create({
   baseURL: BASE_URL,
@@ -153,7 +153,7 @@ instance.interceptors.response.use(
 
       try {
         const res = await axios.post(
-          `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'}${refreshUrl}`,
+          `${import.meta.env.VITE_API_BASE_URL || ''}${refreshUrl}`,
           { refresh_token: storedRefresh },
           { headers: { 'Content-Type': 'application/json' } }
         )

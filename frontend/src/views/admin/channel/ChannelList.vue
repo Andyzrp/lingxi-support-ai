@@ -150,7 +150,7 @@
           <div class="ws-url-label">WebSocket 地址</div>
           <div class="ws-url-row">
             <code class="ws-url">
-              ws://localhost:8000/api/v1/chat/ws/{{ channel.channel_token }}
+              {{ wsBaseUrl }}/api/v1/chat/ws/{{ channel.channel_token }}
             </code>
             <el-button
               text
@@ -399,7 +399,7 @@
           <div class="test-info-item">
             <span class="test-info-label">WS 地址：</span>
             <code class="test-ws-url">
-              ws://localhost:8000/api/v1/chat/ws/{{ testChannel?.channel_token }}
+              {{ wsBaseUrl }}/api/v1/chat/ws/{{ testChannel?.channel_token }}
             </code>
           </div>
           <div class="test-info-item">
@@ -502,6 +502,10 @@ import dayjs from 'dayjs'
 
 const router = useRouter()
 
+// 根据当前页面协议推导 ws/wss URL（外网访问时走当前 host，nginx 反代到 backend）
+const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
+const wsBaseUrl = `${wsProtocol}//${window.location.host}`
+
 // ==================== 发布弹窗 ====================
 const publishVisible = ref(false)
 const publishChannel = ref(null)
@@ -586,7 +590,7 @@ async function copyToken(token) {
 
 // 复制 WS 地址
 async function copyWsUrl(token) {
-  const url = `ws://localhost:8000/api/v1/chat/ws/${token}`
+  const url = `${wsBaseUrl}/api/v1/chat/ws/${token}`
   try {
     await navigator.clipboard.writeText(url)
     ElMessage.success('WebSocket 地址已复制')
@@ -799,7 +803,7 @@ function connectTestWs() {
 
   const token = testChannel.value.channel_token
   // 使用管理员 ID=0 作为测试用户 [2]
-  const url   = `ws://localhost:8000/api/v1/chat/ws/${token}?user_id=0`
+  const url   = `${wsBaseUrl}/api/v1/chat/ws/${token}?user_id=0`
 
   testWs = new WebSocket(url)
 

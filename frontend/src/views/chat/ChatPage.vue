@@ -298,6 +298,30 @@ const showEvaluate   = ref(false)
 const wsStatus       = ref('disconnected')
 const channelName    = ref('')
 
+// 会话持久化 key（按用户/游客维度区分）
+const CONVERSATION_KEY = `lingxi_conversation_${userId}`
+
+// 从 localStorage 读取已有会话ID（刷新/重进时恢复）
+function loadStoredConversationId() {
+  const stored = localStorage.getItem(CONVERSATION_KEY)
+  if (stored) {
+    const num = Number(stored)
+    if (!isNaN(num) && num > 0) {
+      conversationId.value = num
+      console.log('[ChatPage] 恢复已有会话:', num)
+      return num
+    }
+  }
+  return null
+}
+
+// 保存会话ID到 localStorage
+function saveConversationId(id) {
+  if (id && id > 0) {
+    localStorage.setItem(CONVERSATION_KEY, String(id))
+  }
+}
+
 let ws             = null
 let heartbeatTimer = null
 let reconnectTimer = null
@@ -318,18 +342,52 @@ function removeThinking() {
   if (idx !== -1) messages.value.splice(idx, 1)
 }
 
+// 加载历史消息（复用会话时显示之前对话）
+async function loadHistory(convId) {
+  try {
+    const baseURL = import.meta.env.VITE_API_BASE_URL || ''
+    const res = await axios.get(`${baseURL}/api/v1/chat/conversations/${convId}/messages/public`, {
+      params: { user_id: userId }
+    })
+    const list = res.data?.data || []
+    if (!list.length) return
+    // 避免和欢迎消息/当前消息重复
+    const existingIds = new Set(messages.value.map(m => String(m.id)))
+    const historyMsgs = list
+      .filter(m => !existingIds.has(String(m.id)))
+      .map(m => ({
+        id: m.id,
+        role: m.role,
+        content: m.content,
+        timestamp: m.created_at || m.timestamp,
+        extra: (m.card_type ? { card_type: m.card_type, card_data: m.card_data } : null),
+      }))
+    // 历史消息追加到当前消息列表末尾（在欢迎语/热点问题之后）
+    messages.value.push(...historyMsgs)
+    setTimeout(scrollToBottom, 50)
+    console.log(`[ChatPage] 加载历史消息 ${historyMsgs.length} 条`)
+  } catch (e) {
+    console.warn('[ChatPage] 加载历史消息失败:', e?.message)
+  }
+}
+
 function connect() {
   const proto = window.location.protocol === 'https:' ? 'wss' : 'ws'
-  const host  = window.location.hostname
-  const port  = window.location.port === '3000' ? '8000' : window.location.port
-  const url   = `${proto}://${host}:${port}/api/v1/chat/ws/${channelToken}?user_id=${encodeURIComponent(userId)}`
+  // 带上已有会话ID，让后端复用（而非每次新建）
+  const storedCid = loadStoredConversationId()
+  const cidParam = storedCid ? `&conversation_id=${storedCid}` : ''
+  const url   = `${proto}://${window.location.host}/api/v1/chat/ws/${channelToken}?user_id=${encodeURIComponent(userId)}${cidParam}`
   wsStatus.value = 'connecting'
   ws = new WebSocket(url)
 
-  ws.onopen = () => {
+  ws.onopen = async () => {
     wsStatus.value  = 'connected'
     reconnectCount  = 0
     startHeartbeat()
+    // 复用已有会话时，加载历史消息显示
+    if (storedCid) {
+      await loadHistory(storedCid)
+    }
   }
 
   ws.onmessage = (event) => {
@@ -349,7 +407,10 @@ function connect() {
 
 function handleServerMsg(data) {
   if (data.type === 'pong') return
-  if (data.conversation_id) conversationId.value = data.conversation_id
+  if (data.conversation_id) {
+    conversationId.value = data.conversation_id
+    saveConversationId(data.conversation_id)
+  }
   if (data.channel_name) channelName.value = data.channel_name
 
   if (data.type === 'thinking') {
@@ -462,7 +523,7 @@ function formatTime(ts) {
 async function loadChannelConfig() {
   if (!channelToken) return
   try {
-    const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
+    const baseURL = import.meta.env.VITE_API_BASE_URL || ''
     const res = await axios.get(`${baseURL}/api/v1/channels/config/public?token=${encodeURIComponent(channelToken)}`)
     const cfg = res.data?.data
     if (!cfg) return

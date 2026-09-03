@@ -447,7 +447,7 @@ async function downloadResultFile() {
   try {
     const taskId = importResult.value.taskId
     const token = localStorage.getItem('admin_token')
-    const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
+    const baseUrl = import.meta.env.VITE_API_BASE_URL || ''
 
     const { default: axiosRaw } = await import('axios')
 
@@ -496,7 +496,7 @@ async function downloadTemplate() {
   try {
     const token = localStorage.getItem('admin_token')
     const response = await fetch(
-      `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'}/api/v1/knowledge/bases/template`,
+      `${import.meta.env.VITE_API_BASE_URL || ''}/api/v1/knowledge/bases/template`,
       { headers: { Authorization: `Bearer ${token}` } }
     )
 

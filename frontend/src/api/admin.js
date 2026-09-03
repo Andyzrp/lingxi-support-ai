@@ -70,7 +70,7 @@ export const knowledgeApi = {
 
   // 下载导入结果Excel
   downloadImportResult: (taskId) =>
-    `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'}/api/v1/knowledge/import/download-result/${taskId}`,
+    `${import.meta.env.VITE_API_BASE_URL || ''}/api/v1/knowledge/import/download-result/${taskId}`,
 }
 
 // ==================== Bot 管理 ====================

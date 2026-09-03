@@ -180,6 +180,7 @@ async def websocket_chat(
     websocket: WebSocket,
     channel_token: str,
     user_id: Optional[str] = Query(None, description="用户ID（已登录时传入）"),
+    conversation_id: Optional[int] = Query(None, description="复用已有会话ID"),
 ):
     """
     WebSocket 对话接口
@@ -229,13 +230,14 @@ async def websocket_chat(
             await websocket.close()
             return
 
-        # ── Step2：创建会话 ──
+        # ── Step2：创建或复用会话 ──
         # guest 用户（字符串 id）: user_id 存 None，username 存 guest_id
         # 登录用户（数字 id）: user_id 存数字，username 存 None
         numeric_user_id: Optional[int] = None
         snapshot_username: Optional[str] = None
         if user_id and user_id.isdigit():
             numeric_user_id = int(user_id)
+
             from app.crud.user import crud_user
 
             user = await crud_user.get(db, numeric_user_id)
@@ -244,26 +246,49 @@ async def websocket_chat(
         else:
             snapshot_username = user_id
 
-        conversation = await crud_conversation.create(
-            db=db,
-            channel_id=channel.id,
-            user_id=numeric_user_id,
-            username=snapshot_username,
-        )
-        conversation_id = conversation.id
+        # 尝试复用已有会话（刷新/重进聊天窗口时恢复上下文）
+        is_new_conversation = True
+        if conversation_id:
+            try:
+                existing = await crud_conversation.get(db, conversation_id)
+                if existing and existing.channel_id == channel.id:
+                    # 会话归属校验：登录用户匹配 user_id，游客匹配 username
+                    user_match = (
+                        (existing.user_id == numeric_user_id)
+                        or (existing.username == snapshot_username)
+                    )
+                    if user_match:
+                        conversation = existing
+                        conversation_id = conversation.id
+                        is_new_conversation = False
+                        logger.info(
+                            f"复用已有会话 conversation_id={conversation_id}"
+                        )
+            except Exception as e:
+                logger.warning(f"复用会话失败，将新建: {e}")
 
-        logger.info(
-            f"会话创建成功 conversation_id={conversation_id} channel_id={channel.id}"
-        )
+        # 创建新会话
+        if is_new_conversation:
+            conversation = await crud_conversation.create(
+                db=db,
+                channel_id=channel.id,
+                user_id=numeric_user_id,
+                username=snapshot_username,
+            )
+            conversation_id = conversation.id
+            logger.info(
+                f"会话创建成功 conversation_id={conversation_id} channel_id={channel.id}"
+            )
 
-        # ── Step3：推送欢迎消息 ──
-        welcome = _build_ws_message(
-            msg_type="message",
-            role="bot",
-            content="您好！我是灵犀智能客服，请问有什么可以帮助您？",
-            conversation_id=conversation_id,
-        )
-        await websocket.send_text(json.dumps(welcome, ensure_ascii=False))
+        # ── Step3：仅新会话推送欢迎消息（复用时不发，避免重复） ──
+        if is_new_conversation:
+            welcome = _build_ws_message(
+                msg_type="message",
+                role="bot",
+                content="您好！我是灵犀智能客服，请问有什么可以帮助您？",
+                conversation_id=conversation_id,
+            )
+            await websocket.send_text(json.dumps(welcome, ensure_ascii=False))
 
         # ── Step4：主循环 ──
         try:
@@ -543,6 +568,66 @@ async def evaluate_conversation(
         ),
         message="感谢您的评价！",
     )
+
+
+# ==================== 会话历史（公开，聊天窗口使用） ====================
+
+
+@router.get(
+    "/conversations/{conversation_id}/messages/public",
+    summary="获取会话消息记录（聊天窗口公开接口，按 user_id 校验归属）",
+)
+async def get_conversation_messages_public(
+    conversation_id: int,
+    user_id: Optional[str] = Query(None, description="用户ID（登录用户或游客ID）"),
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    聊天窗口加载历史消息使用，无需登录Token。
+    通过 user_id（数字登录用户 或 游客字符串）校验会话归属，
+    与 WebSocket 建连时的归属校验逻辑一致。
+    """
+    conversation = await crud_conversation.get(db, conversation_id)
+    if not conversation:
+        raise HTTPException(status_code=404, detail="会话不存在")
+
+    # 归属校验：登录用户匹配 user_id，游客匹配 username
+    numeric_user_id: Optional[int] = None
+    snapshot_username: Optional[str] = None
+    if user_id and user_id.isdigit():
+        numeric_user_id = int(user_id)
+    else:
+        snapshot_username = user_id
+
+    user_match = (
+        (conversation.user_id == numeric_user_id and numeric_user_id is not None)
+        or (conversation.username == snapshot_username and snapshot_username is not None)
+    )
+    if not user_match:
+        raise HTTPException(status_code=403, detail="无权访问该会话")
+
+    messages = await crud_message.get_list(
+        db=db,
+        conversation_id=conversation_id,
+        limit=200,
+    )
+
+    result = []
+    for msg in messages:
+        extra = msg.extra or {}
+        result.append(
+            {
+                "id": msg.id,
+                "conversation_id": msg.conversation_id,
+                "role": ROLE_TEXT_MAP.get(msg.sender_type, "unknown"),
+                "content": msg.content or "",
+                "card_type": extra.get("card_type"),
+                "card_data": extra.get("card_data"),
+                "created_at": msg.created_at,
+            }
+        )
+
+    return Response.success(data=result)
 
 
 # ==================== 会话管理（管理员） ====================

@@ -121,15 +121,42 @@ const avatarClass = computed(() => agentMap.value[chatStore.agentMode]?.avatarCl
 
 let wsClient = null
 
+// localStorage 会话持久化（按用户维度区分）
+const CONVERSATION_KEY = `lingxi_widget_conversation_${userStore.userId || 'guest'}`
+
+function loadStoredConversationId() {
+  const stored = localStorage.getItem(CONVERSATION_KEY)
+  if (stored) {
+    const num = Number(stored)
+    if (!isNaN(num) && num > 0) return num
+  }
+  return null
+}
+
+function saveConversationId(id) {
+  if (id && id > 0) {
+    localStorage.setItem(CONVERSATION_KEY, String(id))
+  }
+}
+
 function initWebSocket() {
   if (wsClient) {
     wsClient.disconnect()
   }
-  wsClient = new ChatWebSocket(userStore.userId)
+  // 从 localStorage 读取已有会话ID，传给 WebSocket 实现复用
+  const storedCid = loadStoredConversationId()
+  if (storedCid) {
+    chatStore.conversationId = storedCid
+  }
+  wsClient = new ChatWebSocket(userStore.userId, storedCid)
 
   wsClient
     .on('open', () => {
       chatStore.isConnected = true
+      // 复用已有会话时，加载历史消息
+      if (storedCid) {
+        loadHistory()
+      }
     })
     .on('message', handleWsMessage)
     .on('thinking', () => {
@@ -174,8 +201,9 @@ function handleWsMessage(data) {
   chatStore.isThinking = false
 
   if (data.type === 'message') {
-    if (data.conversation_id && !chatStore.conversationId) {
+    if (data.conversation_id) {
       chatStore.conversationId = data.conversation_id
+      saveConversationId(data.conversation_id)
     }
     try {
       chatStore.addMessage(data)
@@ -204,22 +232,28 @@ function handleWsMessage(data) {
 async function loadHistory() {
   if (!chatStore.conversationId) return
   try {
-    const token = localStorage.getItem('token')
-    const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
+    const baseURL = import.meta.env.VITE_API_BASE_URL || ''
     const res = await axios.get(
-      `${baseURL}/api/v1/chat/conversations/${chatStore.conversationId}/messages`,
+      `${baseURL}/api/v1/chat/conversations/${chatStore.conversationId}/messages/public`,
       {
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
+        params: { user_id: userStore.userId },
       }
     )
-    const historyMsgs = ((res.data?.data) || []).map((m) => ({
-      id: m.id,
-      role: senderTypeToRole(m.role),
-      content: m.content,
-      timestamp: m.created_at,
-      extra: m.extra || null,
-    }))
-    chatStore.messages = historyMsgs
+    const list = res.data?.data || []
+    if (!list.length) return
+    // 避免和当前消息重复
+    const existingIds = new Set(chatStore.messages.map(m => String(m.id)))
+    const historyMsgs = list
+      .filter(m => !existingIds.has(String(m.id)))
+      .map(m => ({
+        id: m.id,
+        role: m.role,
+        content: m.content,
+        timestamp: m.created_at,
+        extra: m.card_type ? { card_type: m.card_type, card_data: m.card_data } : null,
+      }))
+    chatStore.messages.push(...historyMsgs)
+    console.log(`[ChatWidget] 加载历史消息 ${historyMsgs.length} 条`)
   } catch (e) {
     console.warn('[loadHistory] 加载历史消息失败:', e?.response?.status, e?.message)
   }
@@ -231,9 +265,9 @@ async function initChat() {
   chatStore.agentMode = 'bot'
   chatStore.agentName = '灵犀客服'
   chatStore.messages = []
-  chatStore.conversationId = null
   chatStore.isThinking = false
   chatStore.showEvaluate = false
+  // 不重置 conversationId，由 initWebSocket 从 localStorage 恢复
 
   initWebSocket()
 }

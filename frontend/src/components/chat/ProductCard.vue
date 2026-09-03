@@ -34,7 +34,11 @@
           </template>
         </el-image>
         <div v-else class="product-img-placeholder">
-          <el-icon :size="32"><Picture /></el-icon>
+          <img
+            :src="PLACEHOLDER_IMG(cardData.id)"
+            alt=""
+            class="product-img"
+          />
         </div>
       </div>
 
@@ -96,6 +100,7 @@
 <script setup>
 import { useRouter } from 'vue-router'
 import { ShoppingCart, View, Picture } from '@element-plus/icons-vue'
+import { PLACEHOLDER_IMG } from '@/utils/format'
 
 const props = defineProps({
   cardData: {

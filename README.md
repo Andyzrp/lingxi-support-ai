@@ -38,7 +38,19 @@
 - **第二层 Agent**：LangGraph 工作流驱动，7种意图识别 + 情绪检测 + RAG 检索 + 工具调用
 - **兜底层**：自动/主动转人工，AI模拟人工客服换人设回答，同一会话上下文不中断
 
-### 🔍 混合检索技术
+### � 闲聊快速通道
+
+- 用户发送"你好""谢谢""再见"等闲聊消息时，**规则匹配直接返回预设回复**，跳过 LLM 调用
+- 响应时间 < 100ms，避免模型兜底出现"非常抱歉，我暂时无法回答"的尴尬场景
+- 支持 greeting / thanks / bye / identity 四种子类型，每类 3-4 个随机回复变体
+
+### 🔄 会话持久化
+
+- 刷新页面 / 重进聊天窗口，**历史对话自动加载**，不再每次开新会话
+- `conversation_id` 存入 localStorage（按用户维度区分），WebSocket 连接时携带复用已有会话
+- 后端新增公开历史消息接口，按 `user_id` 校验归属，无需登录 Token
+
+### � 混合检索技术
 
 - **BM25（权重 0.3）** + **向量相似度（权重 0.7）** 混合检索
 - Embedding 模型：**bge-small-zh-v1.5**（私有化部署，512维）
@@ -48,16 +60,19 @@
 ### 🤖 Agent 工作流（LangGraph）
 
 ```
-意图识别 → 情绪检测 → RAG检索 → 工具调用 → 生成回答 → 置信度判断
+意图识别 → 闲聊拦截 → 情绪检测 → RAG检索 → 工具调用 → 生成回答 → 置信度判断
+              ↓
+         直接返回预设回复（跳过后续流程）
 ```
 
 - **7种意图**：订单查询 / 物流查询 / 退款申请 / 商品咨询 / 售后咨询 / 投诉 / 一般咨询
+- **闲聊意图**：命中关键词直接返回，响应 < 100ms
 - **情绪检测**：neutral / negative / angry，触发自动转人工
 - **置信度判断**：低置信度自动降级，避免错误回答
 
 ### 🔧 工具调用能力
 
-Agent 可调用4种工具获取真实数据，回答更准确：
+Agent 可调用4种工具获取真实数据，工具成功/失败均返回**客服口吻文案**：
 
 | 工具 | 说明 | 数据来源 |
 |------|------|----------|
@@ -95,39 +110,13 @@ Agent 可调用4种工具获取真实数据，回答更准确：
 
 ## 🏗️ 系统架构
 
-```
-┌───────────────────────────────────────────────────────────┐
-│                          用户端                            │
-│  ┌────────────┐  ┌────────────┐  ┌────────────┐          │
-│  │  商城前台   │  │  客服悬浮窗  │  │  独立对话页  │          │
-│  └──────┬─────┘  └──────┬─────┘  └──────┬─────┘          │
-└─────────┼────────────────┼────────────────┼───────────────┘
-          └────────────────┼────────────────┘
-                           │ WebSocket
-                           ▼
-┌───────────────────────────────────────────────────────────┐
-│                    Nginx 反向代理                           │
-└───────────────────────────────────────────────────────────┘
-                           │
-         ┌─────────────────┼─────────────────┐
-         │                 │                 │
-         ▼                 ▼                 ▼
-┌─────────────┐   ┌─────────────┐   ┌─────────────┐
-│   FastAPI   │   │  WebSocket  │   │   前端页面   │
-│   后端服务   │   │   实时对话   │   │   Vue3 SPA  │
-│   :8000     │   │             │   │   :3000     │
-└──────┬──────┘   └──────┬──────┘   └─────────────┘
-       │                 │
-       └─────────────────┼──────────────────────┐
-                         │                      │
-       ┌─────────────────┼──────────────────┐   │
-       │                 │                  │   │
-       ▼                 ▼                  ▼   ▼
-┌──────────┐   ┌──────────┐   ┌──────────┐   ┌──────────┐
-│  Redis   │   │PostgreSQL│   │  Qdrant  │   │  Celery  │
-│ 缓存/会话 │   │  关系数据 │   │  向量数据 │   │ 异步任务  │
-└──────────┘   └──────────┘   └──────────┘   └──────────┘
-```
+系统采用五层架构，架构总览如下图：
+
+![系统架构图](docs/architecture.svg)
+
+### 对话处理流程
+
+![对话处理流程](docs/chat-flow.svg)
 
 ---
 
@@ -167,27 +156,34 @@ Agent 可调用4种工具获取真实数据，回答更准确：
 
 ```bash
 # 克隆项目
-git clone https://gitee.com/runping/lingxi-support-ai.git
+git clone https://github.com/你的用户名/lingxi-support-ai.git
 cd lingxi-support-ai
 
 # 配置环境变量
 cp .env.example .env
 # 编辑 .env 填写数据库、Redis、Qdrant、大模型API等配置
 
-# 初始化数据库（执行 sql/init.sql 创建表结构）
-
-# 启动所有服务
-docker-compose build
-docker-compose up -d
+# 一键启动所有服务（自动构建镜像 + 初始化数据库）
+docker compose up -d --build
 
 # 查看服务状态
-docker-compose ps
+docker compose ps
 
 # 访问页面
 # 前台商城：http://localhost:3000
 # 后台管理：http://localhost:3000/admin
 # 后端接口文档：http://localhost:8000/docs
 ```
+
+**Docker 部署说明：**
+
+- 共 7 个服务：`postgres` / `redis` / `qdrant` / `encoder` / `backend` / `celery` / `frontend`
+- 前端 Dockerfile 采用多阶段构建（Node.js 编译 + Nginx 托管静态资源）
+- 后端目录通过数据卷挂载，修改 `.env` 后 `docker compose restart backend` 即可生效，无需重新构建
+- PostgreSQL 首次启动自动执行 `sql/init.sql` 初始化表结构
+- Encoder 服务预下载 `bge-small-zh-v1.5` 模型，使用 `HF_ENDPOINT=hf-mirror.com` 加速
+- 前端 npm 使用 `registry.npmmirror.com` 加速依赖安装
+- 低内存服务器（2-3G）可注释掉 `celery` 服务（代码中无 `.delay()` 调用）
 
 ### 方式二：本地开发
 
@@ -247,7 +243,7 @@ lingxi-support-ai/
 │   │   ├── agent/           # LangGraph Agent工作流
 │   │   │   ├── graph.py     # 工作流编排
 │   │   │   ├── state.py     # 状态定义
-│   │   │   ├── nodes/       # 意图识别/情绪检测/RAG/工具/生成/置信度
+│   │   │   ├── nodes/       # 意图识别/情绪检测/RAG/工具/生成/置信度/闲聊拦截
 │   │   │   └── tools/       # 订单/物流/退款/商品查询
 │   │   ├── crud/            # 数据库CRUD操作
 │   │   ├── models/          # SQLAlchemy数据模型（20张表）
@@ -289,9 +285,12 @@ lingxi-support-ai/
 ### 智能客服对话
 
 - **Bot层**：关键词干预（精确/包含匹配，触发话术/推荐FAQ/转人工）+ FAQ混合检索
-- **Agent层**：意图识别 → 情绪检测 → RAG检索 → 工具调用 → 大模型生成 → 置信度判断
+- **Agent层**：意图识别 → 闲聊拦截 → 情绪检测 → RAG检索 → 工具调用 → 大模型生成 → 置信度判断
+- **闲聊快速通道**：打招呼/答谢等场景直接返回预设回复，跳过 LLM 调用，响应 < 100ms
 - **转人工**：AI模拟人工客服，随机分配客服名称，同一会话上下文不中断
 - **卡片回复**：订单/物流/商品等信息以卡片形式展示，支持直接操作
+- **会话持久化**：刷新页面/重进聊天窗口自动加载历史对话，`conversation_id` 存 localStorage
+- **工具文案优化**：工具成功/失败均返回客服口吻友好文案，不暴露技术细节
 - **会话生命周期**：5分钟无消息 → 推送评价卡片 → 会话结束
 
 ### 后台管理平台
@@ -316,32 +315,34 @@ lingxi-support-ai/
 
 ```bash
 # 数据库
-POSTGRES_HOST=10.99.216.94
+POSTGRES_HOST=postgres       # Docker内部使用服务名
 POSTGRES_PORT=5432
 POSTGRES_DB=lingxi_support
 POSTGRES_USER=lingxi
 POSTGRES_PASSWORD=your_password
 
 # Redis
-REDIS_HOST=10.99.216.94
+REDIS_HOST=redis
 REDIS_PORT=6379
 
 # Qdrant
-QDRANT_HOST=10.99.216.94
+QDRANT_HOST=qdrant
 QDRANT_PORT=6333
 
-# 大模型API
-LLM_BASE_URL=https://your-api-endpoint/v1
+# 大模型API（支持 DeepSeek / Qwen 等OpenAI兼容接口）
+LLM_BASE_URL=https://api.deepseek.com/v1
 LLM_API_KEY=your_api_key
-LLM_MODEL=deepseek-v3.2-chat-private
+LLM_MODEL=deepseek-chat
 
 # Embedding服务
-EMBEDDING_HOST=10.99.216.94
+EMBEDDING_HOST=encoder       # Docker内部使用服务名
 EMBEDDING_PORT=8001
 
 # JWT安全
 SECRET_KEY=your_secret_key  # 生产环境务必修改！
 ```
+
+> **提示**：Docker 部署时 `HOST` 使用服务名（如 `postgres`/`redis`/`qdrant`/`encoder`），本地开发时改为 `localhost` 或实际IP。
 
 ---
 
@@ -361,11 +362,15 @@ SECRET_KEY=your_secret_key  # 生产环境务必修改！
 | 后端基础设施 | 100% | ✅ 完成 |
 | 后端全部接口 | 100% | ✅ 完成 |
 | Agent工作流 | 100% | ✅ 完成 |
+| 闲聊快速通道 | 100% | ✅ 完成 |
+| 会话持久化（历史对话加载） | 100% | ✅ 完成 |
+| 工具回复客服文案优化 | 100% | ✅ 完成 |
 | 前台商城页面 | 100% | ✅ 完成 |
 | 客服对话组件 | 100% | ✅ 完成 |
 | 后台管理平台 | 100% | ✅ 完成 |
 | Docker部署 | 100% | ✅ 完成 |
 | widget.js挂件 | 0% | ⬜ 待开发 |
+| LangChain记忆功能 | 0% | ⬜ 规划中 |
 | 知识库数据导入 | 5% | ⬜ 进行中 |
 
 ---

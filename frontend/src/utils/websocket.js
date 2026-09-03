@@ -6,9 +6,10 @@
 import { CHANNEL_TOKEN } from '@/utils/constants'
 
 export class ChatWebSocket {
-  constructor(userId = null) {
+  constructor(userId = null, conversationId = null) {
     this.CHANNEL_TOKEN = CHANNEL_TOKEN
     this.userId = userId
+    this.conversationId = conversationId
     this.ws = null
     this.listeners = {}
     this.heartbeatTimer = null
@@ -18,10 +19,19 @@ export class ChatWebSocket {
   }
 
   connect() {
-    const base = 'ws://localhost:8000'
-    let url = `${base}/api/v1/chat/ws/${this.CHANNEL_TOKEN}`
+    // 根据当前页面协议推导 ws/wss URL
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
+    const base = `${protocol}//${window.location.host}`
+    const params = []
     if (this.userId) {
-      url += `?user_id=${this.userId}`
+      params.push(`user_id=${encodeURIComponent(this.userId)}`)
+    }
+    if (this.conversationId) {
+      params.push(`conversation_id=${this.conversationId}`)
+    }
+    let url = `${base}/api/v1/chat/ws/${this.CHANNEL_TOKEN}`
+    if (params.length) {
+      url += `?${params.join('&')}`
     }
 
     console.log('🔌 WebSocket 连接中...', url)

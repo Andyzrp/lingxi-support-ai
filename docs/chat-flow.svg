@@ -1,0 +1,173 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="980" height="580" viewBox="0 0 980 580" font-family="'Microsoft YaHei','PingFang SC','Segoe UI',sans-serif">
+  <defs>
+    <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0,0 L10,5 L0,10 Z" fill="#333"/>
+    </marker>
+    <marker id="arG" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0,0 L10,5 L0,10 Z" fill="#2e7d32"/>
+    </marker>
+    <marker id="arR" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0,0 L10,5 L0,10 Z" fill="#c62828"/>
+    </marker>
+  </defs>
+
+  <!-- 背景（淡黄） -->
+  <rect width="980" height="580" fill="#fbfbe0"/>
+
+  <!-- 标题 -->
+  <text x="490" y="34" text-anchor="middle" font-size="20" font-weight="bold" fill="#111">对话处理流程</text>
+
+  <!-- ===================== 阶段块 1：消息接入 ===================== -->
+  <rect x="30" y="60" width="205" height="460" rx="6" fill="#b9e35a" stroke="#7fa823" stroke-width="1.5"/>
+  <text x="43" y="82" font-size="13" font-weight="bold" fill="#1a3000">① 消息接入</text>
+
+  <rect x="43" y="95" width="179" height="52" fill="#fff" stroke="#555" stroke-width="1"/>
+  <text x="132" y="116" text-anchor="middle" font-size="12" font-weight="bold" fill="#111">用户发送消息</text>
+  <text x="132" y="133" text-anchor="middle" font-size="9" fill="#888">WebSocket / HTTP</text>
+
+  <line x1="132" y1="147" x2="132" y2="163" stroke="#333" stroke-width="1.5" marker-end="url(#ar)"/>
+
+  <rect x="43" y="165" width="179" height="52" fill="#fff" stroke="#555" stroke-width="1"/>
+  <text x="132" y="186" text-anchor="middle" font-size="12" font-weight="bold" fill="#111">保存用户消息</text>
+  <text x="132" y="203" text-anchor="middle" font-size="9" fill="#888">PostgreSQL · messages表</text>
+
+  <line x1="132" y1="217" x2="132" y2="233" stroke="#333" stroke-width="1.5" marker-end="url(#ar)"/>
+
+  <rect x="43" y="235" width="179" height="52" fill="#fff" stroke="#555" stroke-width="1"/>
+  <text x="132" y="256" text-anchor="middle" font-size="12" font-weight="bold" fill="#111">加载历史上下文</text>
+  <text x="132" y="273" text-anchor="middle" font-size="9" fill="#888">最近N轮对话记录</text>
+
+  <!-- ===================== 阶段块 2：Bot层拦截 ===================== -->
+  <rect x="275" y="60" width="205" height="460" rx="6" fill="#b9e35a" stroke="#7fa823" stroke-width="1.5"/>
+  <text x="288" y="82" font-size="13" font-weight="bold" fill="#1a3000">② Bot层拦截</text>
+  <text x="468" y="82" text-anchor="end" font-size="10" font-weight="bold" fill="#2f6fb3">第一层</text>
+
+  <rect x="288" y="95" width="179" height="52" fill="#fff" stroke="#555" stroke-width="1"/>
+  <text x="377" y="116" text-anchor="middle" font-size="12" font-weight="bold" fill="#111">关键词干预</text>
+  <text x="377" y="133" text-anchor="middle" font-size="9" fill="#888">精确/包含匹配 · 最高优先级</text>
+
+  <line x1="377" y1="147" x2="377" y2="163" stroke="#333" stroke-width="1.5" marker-end="url(#ar)"/>
+  <text x="385" y="160" font-size="9" fill="#888">未命中</text>
+
+  <rect x="288" y="165" width="179" height="52" fill="#fff" stroke="#555" stroke-width="1"/>
+  <text x="377" y="186" text-anchor="middle" font-size="12" font-weight="bold" fill="#111">FAQ 混合检索</text>
+  <text x="377" y="203" text-anchor="middle" font-size="9" fill="#888">BM25(30%)+向量(70%) 阈值0.85</text>
+
+  <line x1="377" y1="217" x2="377" y2="233" stroke="#333" stroke-width="1.5" marker-end="url(#ar)"/>
+  <text x="385" y="230" font-size="9" fill="#888">未命中</text>
+
+  <rect x="288" y="235" width="179" height="52" fill="#fff" stroke="#555" stroke-width="1"/>
+  <text x="377" y="256" text-anchor="middle" font-size="12" font-weight="bold" fill="#111">命中直接回答</text>
+  <text x="377" y="273" text-anchor="middle" font-size="9" fill="#2e7d32">干预话术 / FAQ答案 · &lt;50ms</text>
+
+  <!-- ===================== 阶段块 3：Agent工作流 ===================== -->
+  <rect x="520" y="60" width="205" height="460" rx="6" fill="#a8d83f" stroke="#7fa823" stroke-width="2"/>
+  <text x="533" y="82" font-size="13" font-weight="bold" fill="#1a3000">③ Agent工作流</text>
+  <text x="713" y="82" text-anchor="end" font-size="10" font-weight="bold" fill="#2f6fb3">LangGraph</text>
+
+  <rect x="533" y="92" width="179" height="46" fill="#fff" stroke="#555" stroke-width="1"/>
+  <text x="622" y="110" text-anchor="middle" font-size="12" font-weight="bold" fill="#111">意图识别</text>
+  <text x="622" y="126" text-anchor="middle" font-size="9" fill="#888">7种业务意图 · 规则+LLM兜底</text>
+
+  <line x1="622" y1="138" x2="622" y2="150" stroke="#333" stroke-width="1.5" marker-end="url(#ar)"/>
+
+  <rect x="533" y="152" width="179" height="46" fill="#fff" stroke="#555" stroke-width="1"/>
+  <text x="622" y="170" text-anchor="middle" font-size="12" font-weight="bold" fill="#111">闲聊拦截</text>
+  <text x="622" y="186" text-anchor="middle" font-size="9" fill="#2e7d32">命中→预设回复 · &lt;100ms</text>
+
+  <line x1="622" y1="198" x2="622" y2="210" stroke="#333" stroke-width="1.5" marker-end="url(#ar)"/>
+  <text x="630" y="208" font-size="9" fill="#888">未命中</text>
+
+  <rect x="533" y="212" width="179" height="46" fill="#fff" stroke="#555" stroke-width="1"/>
+  <text x="622" y="230" text-anchor="middle" font-size="12" font-weight="bold" fill="#111">情绪检测</text>
+  <text x="622" y="246" text-anchor="middle" font-size="9" fill="#c62828">angry/negative → 转人工</text>
+
+  <line x1="622" y1="258" x2="622" y2="270" stroke="#333" stroke-width="1.5" marker-end="url(#ar)"/>
+  <text x="630" y="268" font-size="9" fill="#888">正常</text>
+
+  <rect x="533" y="272" width="179" height="46" fill="#fff" stroke="#555" stroke-width="1"/>
+  <text x="622" y="290" text-anchor="middle" font-size="12" font-weight="bold" fill="#111">RAG检索 + 工具调用</text>
+  <text x="622" y="306" text-anchor="middle" font-size="9" fill="#888">知识库 / 订单·物流·退款·商品</text>
+
+  <line x1="622" y1="318" x2="622" y2="330" stroke="#333" stroke-width="1.5" marker-end="url(#ar)"/>
+
+  <rect x="533" y="332" width="179" height="46" fill="#fff" stroke="#555" stroke-width="1"/>
+  <text x="622" y="350" text-anchor="middle" font-size="12" font-weight="bold" fill="#111">大模型生成</text>
+  <text x="622" y="366" text-anchor="middle" font-size="9" fill="#888">ChatOpenAI · 客服口吻文案</text>
+
+  <line x1="622" y1="378" x2="622" y2="390" stroke="#333" stroke-width="1.5" marker-end="url(#ar)"/>
+
+  <rect x="533" y="392" width="179" height="46" fill="#fff" stroke="#555" stroke-width="1"/>
+  <text x="622" y="410" text-anchor="middle" font-size="12" font-weight="bold" fill="#111">置信度判断</text>
+  <text x="622" y="426" text-anchor="middle" font-size="9" fill="#c62828">低→转人工 · 通过→返回回复</text>
+
+  <!-- ===================== 阶段块 4：回复与推送 ===================== -->
+  <rect x="765" y="60" width="185" height="460" rx="6" fill="#9fc2f0" stroke="#4a6fa5" stroke-width="1.5"/>
+  <text x="778" y="82" font-size="13" font-weight="bold" fill="#0d2a52">④ 回复与推送</text>
+
+  <rect x="778" y="95" width="159" height="52" fill="#fff" stroke="#555" stroke-width="1"/>
+  <text x="857" y="116" text-anchor="middle" font-size="12" font-weight="bold" fill="#111">返回回复</text>
+  <text x="857" y="133" text-anchor="middle" font-size="9" fill="#888">置信度校验通过</text>
+
+  <line x1="857" y1="147" x2="857" y2="163" stroke="#333" stroke-width="1.5" marker-end="url(#ar)"/>
+
+  <rect x="778" y="165" width="159" height="52" fill="#fff" stroke="#c62828" stroke-width="1.5"/>
+  <text x="857" y="186" text-anchor="middle" font-size="12" font-weight="bold" fill="#c62828">转人工兜底</text>
+  <text x="857" y="203" text-anchor="middle" font-size="9" fill="#888">AI模拟客服 · 上下文不中断</text>
+
+  <line x1="857" y1="217" x2="857" y2="233" stroke="#333" stroke-width="1.5" marker-end="url(#ar)"/>
+
+  <rect x="778" y="235" width="159" height="52" fill="#fff" stroke="#555" stroke-width="1"/>
+  <text x="857" y="256" text-anchor="middle" font-size="12" font-weight="bold" fill="#111">保存客服消息</text>
+  <text x="857" y="273" text-anchor="middle" font-size="9" fill="#888">PostgreSQL · 含意图/来源</text>
+
+  <line x1="857" y1="287" x2="857" y2="303" stroke="#333" stroke-width="1.5" marker-end="url(#ar)"/>
+
+  <rect x="778" y="305" width="159" height="52" fill="#fff" stroke="#555" stroke-width="1"/>
+  <text x="857" y="326" text-anchor="middle" font-size="12" font-weight="bold" fill="#111">WebSocket 推送</text>
+  <text x="857" y="343" text-anchor="middle" font-size="9" fill="#888">实时渲染 · 消息卡片</text>
+
+  <!-- 响应耗时说明 -->
+  <rect x="778" y="380" width="159" height="120" fill="#fff" stroke="#4a6fa5" stroke-width="1" stroke-dasharray="4,3"/>
+  <text x="857" y="402" text-anchor="middle" font-size="11" font-weight="bold" fill="#0d2a52">响应耗时参考</text>
+  <text x="857" y="424" text-anchor="middle" font-size="9" fill="#888">Bot命中：&lt;50ms</text>
+  <text x="857" y="444" text-anchor="middle" font-size="9" fill="#888">闲聊快速通道：&lt;100ms</text>
+  <text x="857" y="464" text-anchor="middle" font-size="9" fill="#888">Agent全流程：2~5s</text>
+  <text x="857" y="484" text-anchor="middle" font-size="9" fill="#2f6fb3">会话5分钟无消息→评价卡片</text>
+
+  <!-- ===================== 跨块主流程箭头 ===================== -->
+  <line x1="235" y1="121" x2="273" y2="121" stroke="#333" stroke-width="2" marker-end="url(#ar)"/>
+  <line x1="480" y1="121" x2="518" y2="121" stroke="#333" stroke-width="2" marker-end="url(#ar)"/>
+  <text x="499" y="112" text-anchor="middle" font-size="9" fill="#888">未命中</text>
+  <line x1="725" y1="115" x2="763" y2="115" stroke="#333" stroke-width="2" marker-end="url(#ar)"/>
+
+  <!-- Bot命中 → 快速回答（绿色虚线，走顶部） -->
+  <path d="M467,121 L497,121 L497,48 L757,48 L757,108 L778,108" fill="none" stroke="#2e7d32" stroke-width="1.5" stroke-dasharray="6,3" marker-end="url(#arG)"/>
+  <text x="620" y="42" text-anchor="middle" font-size="10" font-weight="bold" fill="#2e7d32">命中 → 直接回答（跳过Agent）</text>
+
+  <!-- 情绪angry → 转人工（红虚线） -->
+  <path d="M712,235 L742,235 L742,191 L778,191" fill="none" stroke="#c62828" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arR)"/>
+  <text x="730" y="228" text-anchor="middle" font-size="9" fill="#c62828">angry</text>
+
+  <!-- 置信度低 → 转人工（红虚线） -->
+  <path d="M712,415 L742,415 L742,200 L778,200" fill="none" stroke="#c62828" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arR)"/>
+  <text x="730" y="408" text-anchor="middle" font-size="9" fill="#c62828">低置信</text>
+
+  <!-- 闲聊命中 → 直接推送（绿虚线） -->
+  <path d="M712,175 L730,175 L730,290 L763,290" fill="none" stroke="#2e7d32" stroke-width="1.5" stroke-dasharray="6,3" marker-end="url(#arG)"/>
+  <text x="742" y="282" text-anchor="middle" font-size="9" fill="#2e7d32">预设回复</text>
+
+  <!-- ===================== 图例 ===================== -->
+  <rect x="30" y="532" width="920" height="34" rx="6" fill="#fff" stroke="#ccc" stroke-width="1"/>
+  <text x="50" y="553" font-size="10" fill="#666">图例：</text>
+  <line x1="90" y1="549" x2="120" y2="549" stroke="#333" stroke-width="2" marker-end="url(#ar)"/>
+  <text x="128" y="553" font-size="10" fill="#666">主流程</text>
+  <line x1="200" y1="549" x2="230" y2="549" stroke="#2e7d32" stroke-width="1.5" stroke-dasharray="6,3" marker-end="url(#arG)"/>
+  <text x="238" y="553" font-size="10" fill="#666">命中快速路径（跳过后续流程）</text>
+  <line x1="420" y1="549" x2="450" y2="549" stroke="#c62828" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arR)"/>
+  <text x="458" y="553" font-size="10" fill="#666">转人工兜底触发</text>
+  <rect x="580" y="543" width="14" height="12" fill="#b9e35a" stroke="#7fa823"/>
+  <text x="602" y="553" font-size="10" fill="#666">处理阶段</text>
+  <rect x="680" y="543" width="14" height="12" fill="#9fc2f0" stroke="#4a6fa5"/>
+  <text x="702" y="553" font-size="10" fill="#666">回复推送</text>
+</svg>

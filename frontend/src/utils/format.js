@@ -54,9 +54,11 @@ export function truncate(text, maxLen = 30) {
   return text.length > maxLen ? text.slice(0, maxLen) + '...' : text
 }
 
-// ✅ 新增 —— 商品占位图
+// ✅ 商品占位图（本地 SVG，不依赖外部服务）
 export function PLACEHOLDER_IMG(id) {
   const colors = ['FFB347', 'FF6B6B', '4ECDC4', '45B7D1', '96CEB4', 'FFEAA7']
   const color  = colors[(id ?? 0) % colors.length]
-  return `https://via.placeholder.com/400x400/${color}/ffffff?text=Product+${id ?? ''}`
+  const text   = `Product ${id ?? ''}`
+  const svg    = `<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400" viewBox="0 0 400 400"><rect width="400" height="400" fill="#${color}"/><text x="200" y="200" font-family="Arial,sans-serif" font-size="28" font-weight="bold" fill="#ffffff" text-anchor="middle" dominant-baseline="middle">${text}</text></svg>`
+  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`
 }
