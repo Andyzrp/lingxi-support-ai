@@ -44,3 +44,7 @@ Thumbs.db
 # 构建日志与临时脚本
 *.log
 _fix_build.sh
+
+# AI 辅助开发文件
+Claude.md
+CLAUDE.md
