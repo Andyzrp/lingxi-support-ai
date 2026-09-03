@@ -15,6 +15,8 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      # 首次启动自动执行 sql 目录下的 init.sql（仅当数据卷为空时执行一次）
+      - ./sql:/docker-entrypoint-initdb.d:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U lingxi -d lingxi_support"]
       interval: 10s
@@ -67,6 +69,15 @@ services:
       - QDRANT_URL=http://qdrant:6333
       - CELERY_BROKER_URL=redis://redis:6379/1
       - CELERY_RESULT_BACKEND=redis://redis:6379/2
+      # 注入容器间通信所需的服务名（覆盖 backend/.env 中的内网 IP）
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - QDRANT_HOST=qdrant
+      - QDRANT_PORT=6333
+      - EMBEDDING_HOST=encoder
+      - EMBEDDING_PORT=8001
     depends_on:
       postgres:
         condition: service_healthy
@@ -74,6 +85,8 @@ services:
         condition: service_healthy
       qdrant:
         condition: service_healthy
+      encoder:
+        condition: service_started
     volumes:
       - ./backend:/app
       - /app/__pycache__
@@ -85,13 +98,22 @@ services:
       dockerfile: Dockerfile
     container_name: lingxi_celery
     restart: unless-stopped
-    command: celery -A app.celery_app worker --loglevel=info
+    # 修正模块路径：实际 celery_app 在 app/core/celery_app.py
+    command: celery -A app.core.celery_app worker --loglevel=info
     environment:
       - DATABASE_URL=postgresql+asyncpg://lingxi:lingxi123456@postgres:5432/lingxi_support
       - REDIS_URL=redis://redis:6379/0
       - QDRANT_URL=http://qdrant:6333
       - CELERY_BROKER_URL=redis://redis:6379/1
       - CELERY_RESULT_BACKEND=redis://redis:6379/2
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - QDRANT_HOST=qdrant
+      - QDRANT_PORT=6333
+      - EMBEDDING_HOST=encoder
+      - EMBEDDING_PORT=8001
     depends_on:
       postgres:
         condition: service_healthy
@@ -99,6 +121,8 @@ services:
         condition: service_healthy
       qdrant:
         condition: service_healthy
+      encoder:
+        condition: service_started
     volumes:
       - ./backend:/app
       - /app/__pycache__
@@ -116,10 +140,8 @@ services:
       - "3000:3000"
     depends_on:
       - backend
-    volumes:
-      - ./frontend:/app
-      - /app/node_modules
-      - /app/.next
+    # 注意：不挂载源码到 /app。frontend/Dockerfile 是多阶段生产构建，
+    # 镜像里已包含 dist/ 静态产物，挂载 ./frontend:/app 会把构建产物覆盖掉。
 
   # ==================== 向量编码服务（可选） ====================
 
