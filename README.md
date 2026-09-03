@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <img src="https://gitee.com/runping/lingxi-support-ai/badge/star.svg?theme=dark" alt="star">
+  <img src="https://img.shields.io/github/stars/Andyzrp/lingxi-support-ai?style=social" alt="star">
   <img src="https://img.shields.io/badge/Python-3.11+-3776AB?logo=python" alt="python">
   <img src="https://img.shields.io/badge/Vue-3-4FC08D?logo=vue.js" alt="vue">
   <img src="https://img.shields.io/badge/FastAPI-0.136+-009688?logo=fastapi" alt="fastapi">
