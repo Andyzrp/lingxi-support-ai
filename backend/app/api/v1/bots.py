@@ -81,6 +81,20 @@ async def list_bots(
     return Response.success(data=result)
 
 
+@router.post("", summary="创建Bot")
+async def create_bot(
+    obj_in: BotCreate,
+    db: AsyncSession = Depends(get_db),
+    admin_id: int = Depends(get_current_admin_id),
+):
+    kb = await crud_knowledge_base.get(db, obj_in.knowledge_base_id)
+    if not kb:
+        raise HTTPException(status_code=404, detail="知识库不存在")
+
+    bot = await crud_bot.create(db, obj_in)
+    return Response.success(data=_bot_to_out(bot, kb.name, kb.status))
+
+
 @router.put("/{bot_id}", summary="更新Bot")
 async def update_bot(
     bot_id: int,
